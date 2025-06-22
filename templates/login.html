@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
+        body {
+        font-family: 'Poppins', sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        margin: 0;
+        background: linear-gradient(135deg, #66A6FF 0%, #B866FF 100%); /* Adjusted gradient with more purple /
+        color: #333;
+        overflow: hidden; / Prevent scrollbar from background */
+        }
+        .login-container {
+            background: rgba(255, 255, 255, 0.7); /* White with some transparency */
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37); /* Glass effect shadow */
+            backdrop-filter: blur(10px); /* Glass effect blur */
+            -webkit-backdrop-filter: blur(10px); /* Safari support */
+            border: 1px solid rgba(255, 255, 255, 0.18); /* Subtle border for glass effect */
+            text-align: center;
+            width: 100%;
+            max-width: 400px; /* Max width for larger screens */
+            box-sizing: border-box; /* Include padding in width */
+            position: relative; /* For error positioning */
+        }
+
+        h2 {
+            margin-bottom: 30px;
+            color: #333;
+            font-weight: 600;
+            font-size: 2em;
+        }
+
+        .error {
+            color: #d9534f; /* A more subtle red for error */
+            margin-bottom: 20px;
+            font-weight: 500;
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 80px); /* Account for padding */
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 400;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid rgba(255, 255, 255, 0.3); /* Lighter border */
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.2); /* Slightly visible background */
+            outline: none;
+            font-size: 1em;
+            color: #333;
+            box-sizing: border-box; /* Include padding and border in width */
+            transition: border-color 0.3s ease, background-color 0.3s ease;
+        }
+
+        input[type="text"]:focus,
+        input[type="password"]:focus {
+            border-color: #66A6FF; /* Highlight on focus */
+            background-color: rgba(255, 255, 255, 0.4);
+        }
+
+        button[type="submit"] {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(45deg, #66A6FF 0%, #89F7FE 100%); /* Gradient button */
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 4px 10px rgba(102, 166, 255, 0.4); /* Button shadow */
+        }
+
+        button[type="submit"]:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(102, 166, 255, 0.6);
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 500px) {
+            .login-container {
+                margin: 20px; /* Add some margin on very small screens */
+                padding: 30px 25px; /* Adjust padding for smaller screens */
+            }
+
+            h2 {
+                font-size: 1.8em;
+            }
+
+            .error {
+                top: 15px;
+                font-size: 0.9em;
+                width: calc(100% - 50px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h2>Login</h2>
+
+        {% if error %}
+            <p class="error">{{ error }}</p>
+        {% endif %}
+
+        <form method="POST">
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" placeholder="Enter your username">
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" placeholder="Enter your password">
+            </div>
+            <button type="submit">Login</button>
+        </form>
+    </div>
+</body>
+</html>

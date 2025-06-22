@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard</title>
+</head>
+<body>
+    <h2>Welcome, {{ session['user'] }}!</h2>
+    <p><a href="/logout">Logout</a></p>
+
+    <h3>Appliance Control</h3>
+    <form method="POST" action="/toggle-light">
+        <button>Toggle Light</button>
+    </form>
+
+    <!-- Add more buttons for other appliances -->
+</body>
+</html>
