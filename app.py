@@ -18,6 +18,10 @@ ADAFRUIT_USERNAME = os.getenv("ADA_USERNAME")
 AIO_KEY = os.getenv("AIO_KEY")
 FEED_URL = f"https://io.adafruit.com/api/v2/{ADAFRUIT_USERNAME}/feeds/relay-group.relay-1"
 
+
+
+### ROUTES ####
+
 @app.route('/')
 def home():
     return redirect('/dashboard') if 'user' in session else redirect('/login')
@@ -43,8 +47,6 @@ def login():
 
     return render_template('login.html')
 
-
-
 @app.route('/dashboard')
 def dashboard():
     if 'user' not in session:
@@ -56,24 +58,13 @@ def dashboard():
     print(f"got statuses: {statuses}")
     return render_template('dashboard.html', statuses = statuses)
 
-
 @app.route('/logout')
 def logout():
     session.clear()
     return redirect('/login')
 
-#utility functions 
-def set_feed_value(feed_key, value):
-    feed_name = FEEDS.get(feed_key)
-    if not feed_name:
-        return False
-    url = f"https://io.adafruit.com/api/v2/{ADAFRUIT_USERNAME}/feeds/{feed_name}/data"
-    headers = {
-        "X-AIO-Key": AIO_KEY,
-        "Content-Type": "application/json"
-    }
-    res = requests.post(url, headers=headers, json={"value": str(value)})
-    return res.ok
+
+### AJAX ####
 
 @app.route('/toggle/<device>', methods=['POST'])
 def toggle_device(device):
@@ -89,8 +80,19 @@ def toggle_device(device):
     return jsonify({ "success": success })
 
 
+### UTILITY FUNCTIONS ####
 
-
+def set_feed_value(feed_key, value):
+    feed_name = FEEDS.get(feed_key)
+    if not feed_name:
+        return False
+    url = f"https://io.adafruit.com/api/v2/{ADAFRUIT_USERNAME}/feeds/{feed_name}/data"
+    headers = {
+        "X-AIO-Key": AIO_KEY,
+        "Content-Type": "application/json"
+    }
+    res = requests.post(url, headers=headers, json={"value": str(value)})
+    return res.ok
 
 def get_feed_value(feed_key):
     feed_name = FEEDS[feed_key]
@@ -108,6 +110,8 @@ def set_feed_value(feed_key, value):
     response = requests.post(url, headers=headers, json={"value": str(value)})
     return response.ok
 
+
+### MAIN ####
 
 if __name__ == '__main__':
     app.run(debug=True)
