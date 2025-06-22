@@ -1,17 +1,609 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Global styles: Poppins font, centered content, gradient background */
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Align to top for dashboard content */
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #66A6FF 0%, #B866FF 100%); /* Blue to more purple gradient */
+            color: #333;
+            overflow-x: hidden; /* Prevent horizontal scrollbar */
+            padding-top: 20px; /* Space from top of the page */
+            padding-bottom: 20px; /* Space from bottom of the page */
+            box-sizing: border-box; /* Include padding in element's total width and height */
+        }
+
+        /* Main dashboard container with glass theme */
+        .dashboard-container {
+            background: rgba(255, 255, 255, 0.7); /* White with transparency */
+            border-radius: 20px; /* Rounded corners for an app-like feel */
+            padding: 20px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37); /* Glass effect shadow */
+            backdrop-filter: blur(10px); /* Glass effect blur */
+            -webkit-backdrop-filter: blur(10px); /* Safari support for backdrop-filter */
+            border: 1px solid rgba(255, 255, 255, 0.18); /* Subtle border for glass effect */
+            width: 100%;
+            max-width: 600px; /* Max width for the dashboard content */
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            gap: 20px; /* Space between sections */
+        }
+
+        /* Header / Top Bar for the dashboard */
+        .header {
+            display: flex;
+            justify-content: space-between; /* Space out left and right content */
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3); /* Separator line */
+            margin-bottom: 20px;
+        }
+
+        .header .welcome-text {
+            margin: 0;
+            color: #333;
+            font-weight: 600;
+            font-size: 1.8em;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 10px; /* Space between last updated text and refresh button */
+        }
+
+        .header-right .last-updated {
+            margin: 0; /* Remove default margin */
+            color: #555;
+            font-weight: 400;
+            font-size: 0.9em;
+        }
+
+        /* Refresh button styling */
+        .refresh-button {
+            background: none;
+            border: none;
+            font-size: 1.5em;
+            color: #555;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%; /* Circular button */
+            transition: background 0.3s ease;
+        }
+
+        .refresh-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Temperature & Humidity Display Grid */
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* Two equal columns */
+            gap: 15px; /* Space between cards */
+            margin-bottom: 20px;
+        }
+
+        .info-card {
+            background: rgba(255, 255, 255, 0.6); /* Semi-transparent background */
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            text-align: center;
+        }
+
+        .info-card .icon {
+            font-size: 2em;
+            margin-bottom: 10px;
+            color: #66A6FF; /* Blue icon color */
+        }
+
+        .info-card .label {
+            font-size: 0.9em;
+            color: #555;
+            margin-bottom: 5px;
+        }
+
+        .info-card .value {
+            font-size: 1.8em;
+            font-weight: 600;
+            color: #333;
+        }
+
+        /* Appliance Grouping Sections */
+        .appliance-group {
+            background: rgba(255, 255, 255, 0.5); /* Slightly more transparent glass background */
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(31, 38, 135, 0.2); /* Softer shadow */
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .appliance-group h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: #444;
+            font-weight: 600;
+            font-size: 1.5em;
+            text-align: center;
+        }
+
+        /* Appliance Switches Grid (for toggles) */
+        .switches-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* Two columns for switches on mobile */
+            gap: 15px;
+        }
+
+        /* Media query for wider screens: display 4 columns for switches */
+        @media (min-width: 480px) {
+            .switches-grid {
+                grid-template-columns: repeat(4, 1fr); /* Four columns on wider screens */
+            }
+        }
+
+        .switch-card {
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between; /* Distribute content vertically */
+            min-height: 120px; /* Ensure cards have consistent height */
+        }
+
+        .switch-card .icon {
+            font-size: 2em;
+            margin-bottom: 10px;
+            color: #555;
+        }
+
+        .switch-card .label {
+            font-size: 0.9em;
+            color: #555;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        /* Toggle Switch Styling */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px; /* Width of the switch track */
+            height: 28px; /* Height of the switch track */
+        }
+
+        .toggle-switch input {
+            opacity: 0; /* Hide the default checkbox */
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(204, 204, 204, 0.6); /* Off state background */
+            transition: .4s;
+            border-radius: 28px; /* Rounded slider track */
+            border: 1px solid rgba(255, 255, 255, 0.3); /* Glass border */
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1); /* Subtle inner shadow */
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px; /* Size of the toggle circle */
+            width: 20px;
+            left: 4px; /* Position from left */
+            bottom: 3px; /* Position from bottom */
+            background-color: white; /* Toggle circle color */
+            transition: .4s;
+            border-radius: 50%; /* Make it a circle */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Circle shadow */
+        }
+
+        /* Styles when the checkbox is checked (switch is ON) */
+        input:checked + .slider {
+            background: linear-gradient(45deg, #66A6FF, #B866FF); /* On state gradient background */
+            box-shadow: inset 0 2px 5px rgba(102, 166, 255, 0.3);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(22px); /* Move circle to the right */
+        }
+
+        /* AC Control Buttons Grid */
+        .ac-buttons-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* Two columns for AC buttons on mobile */
+            gap: 15px;
+        }
+
+        @media (min-width: 480px) {
+            .ac-buttons-grid {
+                grid-template-columns: repeat(3, 1fr); /* Three columns for AC buttons on wider screens */
+            }
+            /* Adjust if 5 buttons are too wide on small screens, maybe 2 cols x 3 rows */
+            @media (max-width: 550px) {
+                .ac-buttons-grid {
+                    grid-template-columns: repeat(2, 1fr);
+                }
+            }
+        }
+
+
+        .ac-action-button {
+            width: 100%;
+            padding: 12px 5px; /* Adjust padding for text and icon */
+            background: rgba(255, 255, 255, 0.6); /* Glass background */
+            color: #333;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px; /* Slightly more rounded than switches */
+            font-size: 0.9em;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            display: flex; /* Use flexbox for icon and text alignment */
+            flex-direction: column; /* Stack icon and text */
+            align-items: center;
+            justify-content: center;
+            gap: 5px; /* Space between icon and text */
+            min-height: 80px; /* Consistent height for buttons */
+        }
+
+        .ac-action-button i {
+            font-size: 1.5em; /* Icon size */
+            color: #66A6FF; /* Blue icon color */
+        }
+
+        .ac-action-button:hover {
+            background: linear-gradient(45deg, #66A6FF, #B866FF); /* Gradient on hover */
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 166, 255, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .ac-action-button:hover i {
+            color: white; /* Change icon color to white on hover */
+        }
+
+        /* Mobile specific adjustments for smaller screens */
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            .dashboard-container {
+                margin: 10px;
+                padding: 15px;
+                border-radius: 15px; /* Slightly less rounded for very small screens */
+            }
+            .header .welcome-text {
+                font-size: 1.5em;
+            }
+            .header-right .last-updated {
+                font-size: 0.8em;
+            }
+            .refresh-button {
+                font-size: 1.3em;
+            }
+            .info-card {
+                padding: 15px;
+            }
+            .info-card .value {
+                font-size: 1.5em;
+            }
+            .appliance-group {
+                padding: 15px;
+            }
+            .appliance-group h3 {
+                font-size: 1.3em;
+            }
+            .switches-grid {
+                grid-template-columns: repeat(2, 1fr); /* Ensure always 2 columns on small screens */
+            }
+            .switch-card {
+                min-height: 100px;
+                padding: 10px;
+            }
+            .switch-card .icon {
+                font-size: 1.8em;
+            }
+            .ac-action-button {
+                font-size: 0.8em;
+                padding: 10px 5px;
+                min-height: 70px;
+            }
+            .ac-action-button i {
+                font-size: 1.3em;
+            }
+        }
+    </style>
 </head>
 <body>
-    <h2>Welcome, {{ session['user'] }}!</h2>
-    <p><a href="/logout">Logout</a></p>
+    <div class="dashboard-container">
+        <header class="header">
+            <h2 class="welcome-text">Hello, Zodiac!</h2> <!-- {{ session['user'] }} -->
+            <div class="header-right">
+                <span class="last-updated" id="lastUpdated">Last Updated: --:--:--</span>
+                <button class="refresh-button" id="refreshButton" title="Refresh Data"><i class="fas fa-sync-alt"></i></button>
+            </div>
+        </header>
 
-    <h3>Appliance Control</h3>
-    <form method="POST" action="/toggle-light">
-        <button>Toggle Light</button>
-    </form>
+        <!-- Humidity and Temperature Display Section -->
+        <section class="info-grid">
+            <div class="info-card">
+                <i class="fas fa-thermometer-half icon"></i>
+                <div class="label">Temperature</div>
+                <div class="value" id="temperatureValue">25°C</div> <!-- Placeholder value -->
+            </div>
+            <div class="info-card">
+                <i class="fas fa-tint icon"></i>
+                <div class="label">Humidity</div>
+                <div class="value" id="humidityValue">60%</div> <!-- Placeholder value -->
+            </div>
+        </section>
 
-    <!-- Add more buttons for other appliances -->
+        <!-- Lighting & Fans Group -->
+        <section class="appliance-group">
+            <h3><i class="fas fa-lightbulb"></i> Lighting & Fans</h3>
+            <div class="switches-grid">
+                <div class="switch-card">
+                    <i class="fas fa-lightbulb icon"></i>
+                    <div class="label">Light 1</div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="light1Switch" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="switch-card">
+                    <i class="fas fa-lightbulb icon"></i>
+                    <div class="label">Light 2</div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="light2Switch">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="switch-card">
+                    <i class="fas fa-lightbulb icon"></i>
+                    <div class="label">Strip Light</div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="stripLightSwitch" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="switch-card">
+                    <i class="fas fa-fan icon"></i>
+                    <div class="label">Bedroom Fan</div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="bedroomFanSwitch">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+        </section>
+
+        <!-- AC Control Group -->
+        <section class="appliance-group">
+            <h3><i class="fas fa-snowflake"></i> AC Control</h3>
+            <div class="ac-buttons-grid">
+                <button class="ac-action-button" data-action="turnOffAC">
+                    <i class="fas fa-power-off"></i>
+                    Turn Off
+                </button>
+                <button class="ac-action-button" data-action="turnOnAC" data-temp="27">
+                    <i class="fas fa-temperature-low"></i>
+                    Turn On 27°C
+                </button>
+                <button class="ac-action-button" data-action="turnOnAC" data-temp="28">
+                    <i class="fas fa-temperature-low"></i>
+                    Turn On 28°C
+                </button>
+                <button class="ac-action-button" data-action="setTempAC" data-temp="28">
+                    <i class="fas fa-temperature-up"></i>
+                    Set 28°C
+                </button>
+                <button class="ac-action-button" data-action="setTempAC" data-temp="29">
+                    <i class="fas fa-temperature-up"></i>
+                    Set 29°C
+                </button>
+                <button class="ac-action-button" data-action="setTempAC" data-temp="29">
+                    <i class="fas fa-temperature-up"></i>
+                    Lights
+                </button>
+            </div>
+        </section>
+
+        <!-- <section class="appliance-group">
+            <h3><i class="fas fa-home"></i> Other Appliances</h3>
+            <div class="switches-grid">
+                 <div class="switch-card">
+                    <i class="fas fa-plug icon"></i>
+                    <div class="label">TV Plug</div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="tvPlugSwitch" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="switch-card">
+                    <i class="fas fa-door-open icon"></i>
+                    <div class="label">Front Door Lock</div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="doorLockSwitch">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="switch-card">
+                    <i class="fas fa-blender icon"></i>
+                    <div class="label">Kitchen Blender</div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="blenderSwitch">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="switch-card">
+                    <i class="fas fa-water icon"></i>
+                    <div class="label">Sprinkler</div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="sprinklerSwitch" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                 <div class="switch-card">
+                    <i class="fas fa-camera icon"></i>
+                    <div class="label">Security Camera</div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="cameraSwitch">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+        </section> -->
+    </div>
+
+    <script>
+        // Function to update the "Last Updated" timestamp
+        function updateLastUpdated() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            document.getElementById('lastUpdated').textContent = `Last Updated: ${timeString}`;
+        }
+
+        // Function to simulate data refresh (replace with actual fetch calls in a real app)
+        function refreshData() {
+            console.log("Refreshing data...");
+            // Simulate fetching new temperature and humidity values
+            const newTemp = (Math.random() * (30 - 20) + 20).toFixed(1); // Random temp between 20 and 30
+            const newHumidity = (Math.random() * (70 - 50) + 50).toFixed(0); // Random humidity between 50 and 70
+
+            document.getElementById('temperatureValue').textContent = `${newTemp}°C`;
+            document.getElementById('humidityValue').textContent = `${newHumidity}%`;
+
+            // Here you would typically re-fetch the state of all appliances from your backend
+            // For now, we'll just update the timestamp.
+
+            updateLastUpdated(); // Update timestamp after data refresh
+            alertBox("Data refreshed successfully!", "success"); // Show success message
+        }
+
+        // Custom alert box instead of window.alert()
+        function alertBox(message, type = "info") {
+            let alertDiv = document.getElementById('customAlert');
+            if (!alertDiv) {
+                alertDiv = document.createElement('div');
+                alertDiv.id = 'customAlert';
+                Object.assign(alertDiv.style, {
+                    position: 'fixed',
+                    top: '20px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    padding: '12px 25px',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+                    zIndex: '1000',
+                    textAlign: 'center',
+                    transition: 'opacity 0.5s ease-in-out',
+                    opacity: '0',
+                    color: 'white',
+                    fontWeight: 'bold'
+                });
+                document.body.appendChild(alertDiv);
+            }
+
+            alertDiv.textContent = message;
+            if (type === "success") {
+                alertDiv.style.backgroundColor = 'rgba(76, 175, 80, 0.9)'; // Green
+            } else if (type === "error") {
+                alertDiv.style.backgroundColor = 'rgba(244, 67, 54, 0.9)'; // Red
+            } else {
+                alertDiv.style.backgroundColor = 'rgba(33, 150, 243, 0.9)'; // Blue (info)
+            }
+
+            alertDiv.style.opacity = '1';
+
+            // Fade out after 3 seconds
+            setTimeout(() => {
+                alertDiv.style.opacity = '0';
+                setTimeout(() => alertDiv.remove(), 500); // Remove element after fade out
+            }, 3000);
+        }
+
+
+        // Event listener for the refresh button
+        document.getElementById('refreshButton').addEventListener('click', refreshData);
+
+        // Event listener for toggle switches
+        document.querySelectorAll('.toggle-switch input').forEach(function(checkbox) {
+            checkbox.addEventListener('change', function() {
+                const applianceName = this.closest('.switch-card').querySelector('.label').textContent;
+                console.log(`${applianceName} (ID: ${this.id}) is now ${this.checked ? 'ON' : 'OFF'}`);
+                alertBox(`${applianceName} turned ${this.checked ? 'ON' : 'OFF'}!`, "info");
+                // In a real application, send AJAX request to backend:
+                // fetch('/toggle-appliance', { method: 'POST', body: JSON.stringify({ id: this.id, state: this.checked }) })
+            });
+        });
+
+        // Event listener for AC action buttons
+        document.querySelectorAll('.ac-action-button').forEach(function(button) {
+            button.addEventListener('click', function() {
+                const action = this.dataset.action;
+                const temp = this.dataset.temp;
+                let message = "";
+
+                if (action === "turnOffAC") {
+                    message = "AC turned OFF!";
+                    console.log("AC turned OFF");
+                } else if (action === "turnOnAC") {
+                    message = `AC turned ON at ${temp}°C!`;
+                    console.log(`AC turned ON at ${temp}°C`);
+                } else if (action === "setTempAC") {
+                    message = `AC temperature set to ${temp}°C!`;
+                    console.log(`AC temperature set to ${temp}°C`);
+                }
+                alertBox(message, "info");
+
+                // In a real application, send AJAX request to backend:
+                // fetch('/ac-action', { method: 'POST', body: JSON.stringify({ action: action, temperature: temp }) })
+            });
+        });
+
+        // Initial update of the timestamp when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            updateLastUpdated();
+            // Optionally, refresh data on load too
+            // refreshData();
+        });
+
+    </script>
 </body>
 </html>
