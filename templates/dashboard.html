@@ -382,7 +382,7 @@
                     <i class="fas fa-lightbulb icon"></i>
                     <div class="label">Light 1</div>
                     <label class="toggle-switch">
-                        <input type="checkbox" id="light1Switch" checked>
+                        <input type="checkbox" id="light1Switch" onchange="toggleSwitch('light1')" {% if statuses['light1'] %}checked{% endif %}>
                         <span class="slider"></span>
                     </label>
                 </div>
@@ -605,5 +605,35 @@
         });
 
     </script>
+
+    <script>
+        function toggleSwitch(device) {
+            const checkbox = document.getElementById(`${device}Switch`);
+            const status = checkbox.checked ? "on" : "off";
+
+            fetch(`/toggle/${device}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ status: status })
+            })
+            .then(response => {
+                if (!response.ok) throw new Error("Failed");
+                return response.json();
+            })
+            .then(data => {
+                if (!data.success) {
+                    alert("Failed to toggle device.");
+                    checkbox.checked = !checkbox.checked;
+                }
+            })
+            .catch(err => {
+                alert("Error occurred.");
+                checkbox.checked = !checkbox.checked;
+            });
+        }
+    </script>
+    
 </body>
 </html>
