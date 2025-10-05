@@ -1,0 +1,15 @@
+version: "3.0"
+intents:
+  - turn_on_lights
+  - weather_query
+
+responses:
+  utter_turn_on_lights:
+    - text: "Turning on the lights."
+  utter_weather:
+    - text: "Fetching the weather..."
+
+actions:
+  - action_turn_on_lights
+  - action_fetch_weather
+  - action_default_fallback

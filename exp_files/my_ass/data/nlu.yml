@@ -1,0 +1,12 @@
+version: "3.0"
+nlu:
+- intent: turn_on_lights
+  examples: |
+    - turn on the lights
+    - switch on the living room light
+    - lights on
+- intent: weather_query
+  examples: |
+    - what's the weather today
+    - tell me the weather
+    - will it rain today

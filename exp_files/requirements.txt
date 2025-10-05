@@ -1,0 +1,10 @@
+# Wake Word Detection
+pvporcupine
+pyaudio
+
+# Speech-to-Text (Vosk)
+vosk
+sounddevice
+
+# Text-to-Speech (Piper)
+piper-tts

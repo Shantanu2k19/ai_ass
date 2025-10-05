@@ -1,0 +1,16 @@
+version: "3.0"
+rules:
+- rule: Turn on lights
+  steps:
+  - intent: turn_on_lights
+  - action: action_turn_on_lights
+
+- rule: Weather query
+  steps:
+  - intent: weather_query
+  - action: action_fetch_weather
+
+- rule: Default fallback
+  steps:
+  - intent: nlu_fallback
+  - action: action_default_fallback
