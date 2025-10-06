@@ -16,3 +16,4 @@ exp_files/vosk-model-en-us-0.22.zip
 exp_files/aiass/bin/srt-mux
 
 *.onnx
+voice_assistant/venv/
