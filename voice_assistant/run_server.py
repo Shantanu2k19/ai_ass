@@ -13,19 +13,18 @@ def run_server():
     """Run the server."""
     try:
         from app.main import app
-        import uvicorn
-        import asyncio
+        # import uvicorn
+        # import asyncio
         
-        print("Starting Voice Assistant Platform...")
+        print("Starting...")
         print("Server will be available at: http://localhost:8000")
         print("API documentation: http://localhost:8000/docs")
         print("Press Ctrl+C to stop the server")
         
-        # Python 3.6 compatible uvicorn run
         config = uvicorn.Config(
             app,
             host="0.0.0.0",
-            port=8000,
+            port=8080,
             log_level="info",
             access_log=True
         )

@@ -90,9 +90,16 @@ async def health_check():
     }
 
 
+@app.get("/")
+async def home():
+    """Home endpoint."""
+    return {
+        "message": "Hello from AI_ASS"
+    }
+
 @app.get("/modules/status")
 async def get_modules_status():
-    """Get status of all loaded modules."""
+    """Status of all loaded modules."""
     status = {}
     for module_name, module in modules.items():
         if hasattr(module, 'get_status'):
