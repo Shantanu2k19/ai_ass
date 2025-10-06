@@ -16,14 +16,14 @@ def test_health():
     try:
         response = requests.get(f"{BASE_URL}/health")
         if response.status_code == 200:
-            print("✓ Health check passed")
+            print("Health check passed")
             print(f"  Response: {response.json()}")
             return True
         else:
-            print(f"✗ Health check failed: {response.status_code}")
+            print(f"Health check failed: {response.status_code}")
             return False
     except Exception as e:
-        print(f"✗ Health check error: {e}")
+        print(f"Health check error: {e}")
         return False
 
 def test_modules_status():
@@ -32,16 +32,16 @@ def test_modules_status():
     try:
         response = requests.get(f"{BASE_URL}/modules/status")
         if response.status_code == 200:
-            print("✓ Modules status retrieved")
+            print("Modules status retrieved")
             status = response.json()
             for module, info in status.items():
                 print(f"  {module}: {info}")
             return True
         else:
-            print(f"✗ Modules status failed: {response.status_code}")
+            print(f"Modules status failed: {response.status_code}")
             return False
     except Exception as e:
-        print(f"✗ Modules status error: {e}")
+        print(f"Modules status error: {e}")
         return False
 
 def test_speak():
@@ -56,17 +56,17 @@ def test_speak():
         if response.status_code == 200:
             result = response.json()
             if result.get("success"):
-                print("✓ Text-to-speech working")
+                print("Text-to-speech working")
                 print(f"  Response: {result}")
                 return True
             else:
-                print(f"✗ Text-to-speech failed: {result}")
+                print(f"Text-to-speech failed: {result}")
                 return False
         else:
-            print(f"✗ Text-to-speech request failed: {response.status_code}")
+            print(f"Text-to-speech request failed: {response.status_code}")
             return False
     except Exception as e:
-        print(f"✗ Text-to-speech error: {e}")
+        print(f"Text-to-speech error: {e}")
         return False
 
 def test_process_intent():
@@ -95,13 +95,13 @@ def test_process_intent():
                     confidence = result.get("intent", {}).get("confidence", 0)
                     print(f"    Intent: {intent} (confidence: {confidence:.2f})")
                 else:
-                    print(f"    ✗ Failed: {result}")
+                    print(f"    Failed: {result}")
             else:
-                print(f"    ✗ Request failed: {response.status_code}")
+                print(f"    Request failed: {response.status_code}")
         
         return True
     except Exception as e:
-        print(f"✗ Intent processing error: {e}")
+        print(f"Intent processing error: {e}")
         return False
 
 def test_light_control():
@@ -118,17 +118,17 @@ def test_light_control():
             result = response.json()
             if result.get("success"):
                 action_result = result.get("action", {})
-                print("✓ Light control working")
+                print("Light control working")
                 print(f"  Action result: {action_result}")
                 return True
             else:
-                print(f"✗ Light control failed: {result}")
+                print(f"Light control failed: {result}")
                 return False
         else:
-            print(f"✗ Light control request failed: {response.status_code}")
+            print(f"Light control request failed: {response.status_code}")
             return False
     except Exception as e:
-        print(f"✗ Light control error: {e}")
+        print(f"Light control error: {e}")
         return False
 
 def main():
@@ -156,9 +156,9 @@ def main():
     print(f"Client Test Results: {passed}/{total} tests passed")
     
     if passed == total:
-        print("🎉 All client tests passed! The API is working correctly.")
+        print("All client tests passed! The API is working correctly.")
     else:
-        print("❌ Some client tests failed. Please check the server logs.")
+        print("Some client tests failed. Please check the server logs.")
         return 1
     
     return 0

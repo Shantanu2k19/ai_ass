@@ -48,7 +48,7 @@ class ProcessIntentRequest(BaseModel):
 
 
 @app.on_event("startup")
-async def startup_event():
+def startup_event():
     """Initialize modules on startup."""
     global modules, config, module_loader
     
@@ -304,25 +304,10 @@ async def reload_modules():
 
 
 if __name__ == "__main__":
-    import asyncio
-    import sys
-    
-    # Python 3.6 compatibility
-    if sys.version_info < (3, 7):
-        # Use the old asyncio.get_event_loop() for Python 3.6
-        loop = asyncio.get_event_loop()
-        uvicorn.run(
-            "app.main:app",
-            host="0.0.0.0",
-            port=8000,
-            reload=False,  # Disable reload for Python 3.6 compatibility
-            log_level="info"
-        )
-    else:
-        uvicorn.run(
-            "app.main:app",
-            host="0.0.0.0",
-            port=8000,
-            reload=True,
-            log_level="info"
-        )
+    uvicorn.run(
+        "app.main:app",
+        host="0.0.0.0",
+        port=8000,
+        reload=True,
+        log_level="info"
+    )

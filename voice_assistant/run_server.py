@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 """
-Alternative server runner for Python 3.6 compatibility.
+Server runner for the Voice Assistant Platform.
 """
 
-import asyncio
 import sys
 import os
 
@@ -11,24 +10,30 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 def run_server():
-    """Run the server with Python 3.6 compatibility."""
+    """Run the server."""
     try:
         from app.main import app
         import uvicorn
+        import asyncio
         
         print("Starting Voice Assistant Platform...")
         print("Server will be available at: http://localhost:8000")
         print("API documentation: http://localhost:8000/docs")
         print("Press Ctrl+C to stop the server")
         
-        # Use uvicorn directly with Python 3.6 compatible settings
-        uvicorn.run(
+        # Python 3.6 compatible uvicorn run
+        config = uvicorn.Config(
             app,
             host="0.0.0.0",
             port=8000,
             log_level="info",
             access_log=True
         )
+        server = uvicorn.Server(config)
+        
+        # Use the old asyncio.get_event_loop() for Python 3.6
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(server.serve())
         
     except KeyboardInterrupt:
         print("\nShutting down server...")

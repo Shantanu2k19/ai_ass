@@ -17,9 +17,9 @@ def test_imports():
     try:
         from app.core.config import Config
         from app.core.module_loader import initialize_modules
-        print("✓ Core modules imported successfully")
+        print("Core modules imported successfully")
     except ImportError as e:
-        print(f"✗ Failed to import core modules: {e}")
+        print(f"Failed to import core modules: {e}")
         return False
     
     try:
@@ -27,9 +27,9 @@ def test_imports():
         from app.modules.stt.base import BaseSTT
         from app.modules.intent.base import BaseIntent
         from app.modules.actions.base import BaseActions
-        print("✓ Base module classes imported successfully")
+        print("Base module classes imported successfully")
     except ImportError as e:
-        print(f"✗ Failed to import base classes: {e}")
+        print(f"Failed to import base classes: {e}")
         return False
     
     try:
@@ -37,9 +37,9 @@ def test_imports():
         from app.modules.stt.whisper_stt import WhisperSTT
         from app.modules.intent.llm_intent import LLMIntent
         from app.modules.actions.light_control import LightControl
-        print("✓ Concrete module implementations imported successfully")
+        print("Concrete module implementations imported successfully")
     except ImportError as e:
-        print(f"✗ Failed to import concrete implementations: {e}")
+        print(f"Failed to import concrete implementations: {e}")
         return False
     
     return True
@@ -51,7 +51,7 @@ def test_config_loading():
     try:
         from app.core.config import Config
         config = Config("config.yaml")
-        print("✓ Configuration loaded successfully")
+        print("Configuration loaded successfully")
         
         # Test getting module configs
         tts_config = config.get_module_config("tts")
@@ -66,7 +66,7 @@ def test_config_loading():
         
         return True
     except Exception as e:
-        print(f"✗ Failed to load configuration: {e}")
+        print(f"Failed to load configuration: {e}")
         return False
 
 def test_module_loading():
@@ -76,14 +76,14 @@ def test_module_loading():
     try:
         from app.core.module_loader import initialize_modules
         modules = initialize_modules()
-        print("✓ Modules loaded successfully")
+        print("Modules loaded successfully")
         
         for module_name, module in modules.items():
             print(f"  {module_name}: {type(module).__name__}")
         
         return True
     except Exception as e:
-        print(f"✗ Failed to load modules: {e}")
+        print(f"Failed to load modules: {e}")
         return False
 
 def test_module_functionality():
@@ -99,9 +99,9 @@ def test_module_functionality():
             if hasattr(module, 'initialize'):
                 success = module.initialize()
                 if success:
-                    print(f"✓ {module_name} initialized successfully")
+                    print(f"{module_name} initialized successfully")
                 else:
-                    print(f"✗ {module_name} failed to initialize")
+                    print(f"{module_name} failed to initialize")
                     return False
         
         # Test TTS
@@ -109,9 +109,9 @@ def test_module_functionality():
             tts = modules["tts"]
             result = tts.speak("Hello, this is a test")
             if result.get("success"):
-                print("✓ TTS module working")
+                print("TTS module working")
             else:
-                print(f"✗ TTS module failed: {result}")
+                print(f"TTS module failed: {result}")
                 return False
         
         # Test STT
@@ -119,9 +119,9 @@ def test_module_functionality():
             stt = modules["stt"]
             result = stt.transcribe(b"mock audio data")
             if result.get("success"):
-                print("✓ STT module working")
+                print("STT module working")
             else:
-                print(f"✗ STT module failed: {result}")
+                print(f"STT module failed: {result}")
                 return False
         
         # Test Intent
@@ -129,9 +129,9 @@ def test_module_functionality():
             intent = modules["intent"]
             result = intent.recognize_intent("Hello, how are you?")
             if result.get("success"):
-                print("✓ Intent module working")
+                print("Intent module working")
             else:
-                print(f"✗ Intent module failed: {result}")
+                print(f"Intent module failed: {result}")
                 return False
         
         # Test Actions
@@ -139,14 +139,14 @@ def test_module_functionality():
             actions = modules["actions"]
             result = actions.execute_action("light_control", {"device": "living_room", "action": "toggle"})
             if result.get("success"):
-                print("✓ Actions module working")
+                print("Actions module working")
             else:
-                print(f"✗ Actions module failed: {result}")
+                print(f"Actions module failed: {result}")
                 return False
         
         return True
     except Exception as e:
-        print(f"✗ Module functionality test failed: {e}")
+        print(f"Module functionality test failed: {e}")
         return False
 
 def main():
@@ -173,12 +173,12 @@ def main():
     print(f"Test Results: {passed}/{total} tests passed")
     
     if passed == total:
-        print("🎉 All tests passed! The voice assistant platform is ready to use.")
+        print("All tests passed! The voice assistant platform is ready to use.")
         print("\nTo start the server, run:")
         print("  python -m app.main")
         print("\nOr visit http://localhost:8000/docs for API documentation")
     else:
-        print("❌ Some tests failed. Please check the errors above.")
+        print("Some tests failed. Please check the errors above.")
         return 1
     
     return 0
