@@ -8,31 +8,29 @@ import os
 
 # Add the project root to Python path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+reload_enabled = True #os.environ.get("RELOAD", "false").lower() == "true"
 
 def run_server():
     """Run the server."""
     try:
         from app.main import app
-        # import uvicorn
-        # import asyncio
+        import uvicorn
+        import asyncio
         
-        print("Starting...")
-        print("Server will be available at: http://localhost:8000")
-        print("API documentation: http://localhost:8000/docs")
-        print("Press Ctrl+C to stop the server")
+        print("Starting Server -> http://localhost:8000")
         
         config = uvicorn.Config(
             app,
             host="0.0.0.0",
             port=8080,
             log_level="info",
-            access_log=True
+            access_log=True,
+            reload=reload_enabled
         )
         server = uvicorn.Server(config)
         
-        # Use the old asyncio.get_event_loop() for Python 3.6
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(server.serve())
+        #asyncio
+        asyncio.run(server.serve())
         
     except KeyboardInterrupt:
         print("\nShutting down server...")

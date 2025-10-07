@@ -1,3 +1,9 @@
+qucik commands : 
+running server :
+
+uvicorn app.main:app --reload
+
+
 ## Project Structure
 
 ```

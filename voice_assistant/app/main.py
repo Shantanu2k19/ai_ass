@@ -13,11 +13,17 @@ import uvicorn
 from app.core.module_loader import initialize_modules, ModuleLoader
 from app.core.config import Config
 
+# Load configuration
+config = Config()
 
-# Configure logging
+# Configure logging from config
+logging_config = config.get_setting('settings', {}).get('logging', {})
+log_level = getattr(logging, logging_config.get('level', 'INFO').upper())
+log_format = logging_config.get('format', '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    level=log_level,
+    format=log_format
 )
 logger = logging.getLogger(__name__)
 
@@ -53,27 +59,21 @@ def startup_event():
     global modules, config, module_loader
     
     try:
-        logger.info("Starting Voice Assistant Platform...")
+        logger.info("Starting ===============")
         
-        # Load configuration
+        # Load config and Init modules 
         config = Config("config.yaml")
-        
-        # Initialize module loader
         module_loader = ModuleLoader(config)
-        
-        # Load all modules
         modules = module_loader.load_all_modules()
         
         # Initialize all modules
         for module_name, module in modules.items():
             if hasattr(module, 'initialize'):
                 success = module.initialize()
-                if success:
-                    logger.info(f"Module '{module_name}' initialized successfully")
-                else:
+                if not success:
                     logger.error(f"Failed to initialize module '{module_name}'")
         
-        logger.info("Voice Assistant Platform started successfully")
+        logger.info("Init done ===============")
         
     except Exception as e:
         logger.error(f"Failed to start Voice Assistant Platform: {str(e)}")

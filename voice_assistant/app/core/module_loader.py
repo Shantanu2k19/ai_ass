@@ -35,7 +35,7 @@ class ModuleLoader:
             module_class = getattr(module, class_name)
             instance = module_class()
             
-            self.logger.info(f"Successfully loaded module: {module_name} -> {module_path}.{class_name}")
+            self.logger.info(f"{module_name}  \t => {module_path}.{class_name}")
             return instance
             
         except Exception as e:
@@ -55,8 +55,7 @@ class ModuleLoader:
                 self.modules[module_name] = self.load_module(module_name)
             except Exception as e:
                 self.logger.error(f"Failed to load module {module_name}: {str(e)}")
-                # Continue loading other modules even if one fails
-                continue
+                continue #handle
         
         return self.modules
     

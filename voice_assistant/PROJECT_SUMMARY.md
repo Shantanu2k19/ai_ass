@@ -33,7 +33,7 @@ voice_assistant/
 ├── requirements.txt          # Python dependencies
 ├── setup.sh                 # Setup script
 ├── start.sh                 # Startup script
-├── run_server.py            # Python 3.6 compatible server
+├── run_server.py            # Server runner
 ├── test_setup.py            # Setup verification
 ├── example_client.py        # API testing client
 └── README.md                # Documentation
@@ -121,7 +121,7 @@ The platform is designed for easy extension:
 ## Technical Details
 
 - **Framework**: FastAPI 0.83.0
-- **Python Version**: 3.6+ compatible
+- **Python Version**: 3.7+ compatible
 - **Configuration**: YAML-based
 - **Module Loading**: Dynamic import using importlib
 - **API Documentation**: Automatic OpenAPI/Swagger docs

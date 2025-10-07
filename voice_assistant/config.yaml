@@ -1,20 +1,15 @@
-# Voice Assistant Platform Configuration
-# This file defines which modules to load for each component
+# module info
 
 # Text-to-Speech module configuration
-# Options: tts.google_tts.GoogleTTS, tts.elevenlabs_tts.ElevenLabsTTS
 tts: "tts.google_tts.GoogleTTS"
 
 # Speech-to-Text module configuration  
-# Options: stt.whisper_stt.WhisperSTT, stt.vosk_stt.VoskSTT
 stt: "stt.whisper_stt.WhisperSTT"
 
 # Intent Recognition module configuration
-# Options: intent.rasa_intent.RasaIntent, intent.llm_intent.LLMIntent
 intent: "intent.llm_intent.LLMIntent"
 
 # Actions module configuration
-# Options: actions.light_control.LightControl
 actions: "actions.light_control.LightControl"
 
 # Optional: Additional settings
@@ -30,7 +25,8 @@ settings:
   # Logging configuration
   logging:
     level: "INFO"
-    format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    # format: "%(asctime)s[%(name)s][%(levelname)s] %(message)s"
+    format: "[%(asctime)s][%(levelname)s][%(filename)s][%(name)s] - %(message)s"
   
   # Server configuration
   server:
