@@ -13,24 +13,36 @@ reload_enabled = True #os.environ.get("RELOAD", "false").lower() == "true"
 def run_server():
     """Run the server."""
     try:
-        from app.main import app
         import uvicorn
-        import asyncio
         
-        print("Starting Server -> http://localhost:8000")
+        print("Starting Server -> http://localhost:8080")
+        print(f"Reload enabled: {reload_enabled}")
         
-        config = uvicorn.Config(
-            app,
-            host="0.0.0.0",
-            port=8080,
-            log_level="info",
-            access_log=True,
-            reload=reload_enabled
-        )
-        server = uvicorn.Server(config)
-        
-        #asyncio
-        asyncio.run(server.serve())
+        if reload_enabled:
+            # Use uvicorn.run with reload for better file watching
+            uvicorn.run(
+                "app.main:app",
+                host="0.0.0.0",
+                port=8080,
+                log_level="info",
+                access_log=True,
+                reload=True,
+                reload_dirs=["./app", "./config.yaml"]
+            )
+        else:
+            # Import app when not using reload
+            from app.main import app
+            config = uvicorn.Config(
+                app,
+                host="0.0.0.0",
+                port=8080,
+                log_level="info",
+                access_log=True,
+                reload=False
+            )
+            server = uvicorn.Server(config)
+            import asyncio
+            asyncio.run(server.serve())
         
     except KeyboardInterrupt:
         print("\nShutting down server...")

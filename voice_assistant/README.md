@@ -1,4 +1,4 @@
-qucik commands : 
+quici commands : 
 running server :
 
 uvicorn app.main:app --reload

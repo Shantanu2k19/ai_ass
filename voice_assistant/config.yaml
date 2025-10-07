@@ -1,15 +1,8 @@
 # module info
 
-# Text-to-Speech module configuration
 tts: "tts.google_tts.GoogleTTS"
-
-# Speech-to-Text module configuration  
 stt: "stt.whisper_stt.WhisperSTT"
-
-# Intent Recognition module configuration
 intent: "intent.llm_intent.LLMIntent"
-
-# Actions module configuration
 actions: "actions.light_control.LightControl"
 
 # Optional: Additional settings
