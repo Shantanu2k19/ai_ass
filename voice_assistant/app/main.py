@@ -5,6 +5,7 @@ Main FastAPI application for the modular voice assistant platform.
 import logging
 import asyncio
 from typing import Dict, Any, Optional
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
@@ -27,37 +28,18 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Initialize FastAPI app
-app = FastAPI(
-    title="Voice Assistant Platform",
-    description="A modular voice assistant platform with pluggable TTS, STT, Intent, and Action modules",
-    version="1.0.0"
-)
-
 # Global variables for modules
 modules: Dict[str, Any] = {}
 config: Optional[Config] = None
 module_loader: Optional[ModuleLoader] = None
 
 
-class ProcessAudioRequest(BaseModel):
-    """Request model for audio processing."""
-    text: Optional[str] = None
-    language: Optional[str] = "en"
-    voice: Optional[str] = None
-
-
-class ProcessIntentRequest(BaseModel):
-    """Request model for intent processing."""
-    text: str
-    context: Optional[Dict[str, Any]] = None
-
-
-@app.on_event("startup")
-def startup_event():
-    """Initialize modules on startup."""
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Handle application lifespan events."""
     global modules, config, module_loader
     
+    # Startup
     try:
         logger.info("Starting ===============")
         
@@ -78,6 +60,33 @@ def startup_event():
     except Exception as e:
         logger.error(f"Failed to start Voice Assistant Platform: {str(e)}")
         raise
+    
+    yield
+    
+    # Shutdown (if needed)
+    logger.info("Shutting down Voice Assistant Platform...")
+
+
+# Initialize FastAPI app
+app = FastAPI(
+    title="Voice Assistant Platform",
+    description="A modular voice assistant platform with pluggable TTS, STT, Intent, and Action modules",
+    version="1.0.0",
+    lifespan=lifespan
+)
+
+
+class ProcessAudioRequest(BaseModel):
+    """Request model for audio processing."""
+    text: Optional[str] = None
+    language: Optional[str] = "en"
+    voice: Optional[str] = None
+
+
+class ProcessIntentRequest(BaseModel):
+    """Request model for intent processing."""
+    text: str
+    context: Optional[Dict[str, Any]] = None
 
 
 @app.get("/health")
