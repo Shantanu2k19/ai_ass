@@ -17,3 +17,4 @@ exp_files/aiass/bin/srt-mux
 
 *.onnx
 voice_assistant/venv/
+vosk-model-small-en-in-0.4/

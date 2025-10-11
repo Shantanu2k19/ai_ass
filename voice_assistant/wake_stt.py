@@ -17,6 +17,8 @@ load_dotenv()
 wake_word = 'alexa'
 MODEL_PATH = "vosk-model-small-en-in-0.4"
 max_record_len = 6 #seconds
+SILENCE_LIMIT = 0.5
+MAX_LISTEN_TIME = 7
 
 # ------------------- PORCUPINE SETUP -------------------
 porc_access_key = os.environ.get('porc_env_key')
@@ -39,9 +41,6 @@ audio_stream = pa.open(
     frames_per_buffer=porcupine.frame_length
 )
 
-print("Wake word detection initialized.")
-print("Listening for wake word...")
-
 # ------------------- VOSK SETUP -------------------
 if not os.path.exists(MODEL_PATH):
     print(f"Vosk model not found at {MODEL_PATH}")
@@ -51,37 +50,81 @@ vosk_model = Model(MODEL_PATH)
 recognizer = KaldiRecognizer(vosk_model, 16000)
 
 # ------------------- FUNCTIONS -------------------
-def listen_and_transcribe():
+def listen_and_transcribe(silence_limit=SILENCE_LIMIT, max_listen_time=MAX_LISTEN_TIME):
     """
-    Records voice after wake word detection until silence and returns recognized text.
+    Records voice until silence is detected or max time reached.
+    Returns recognized text.
     """
-    print("listening...")
+    print("\nListening...")
     q = queue.Queue()
-    stop_time = time.time() + max_record_len
+    speaking = False
+    result_text = ""
+    start_time = time.time()
+    last_speech_time = start_time
+
     def callback(indata, frames, time_info, status):
         if status:
-            print(status, file=sys.stderr)
+            print(f"[WARN] Audio input status: {status}", file=sys.stderr)
         q.put(bytes(indata))
 
-    with sd.RawInputStream(samplerate=16000, blocksize=8000, dtype='int16',
-                           channels=1, callback=callback):
-        result_text = ""
-        while time.time() < stop_time:
-            data = q.get()
-            if recognizer.AcceptWaveform(data):
-                result = json.loads(recognizer.Result())
-                if "text" in result and result["text"]:
-                    result_text += " " + result["text"]
-            else:
-                partial = json.loads(recognizer.PartialResult()).get("partial", "")
-        # Finalize
+    try:
+        with sd.RawInputStream(
+            samplerate=16000, blocksize=8000, dtype='int16',
+            channels=1, callback=callback
+        ):
+            recognizer.Reset()
+            print("[INFO] Waiting for voice input...")
+
+            while True:
+                if (time.time() - start_time) > max_listen_time:
+                    print("[WARN] Max listen time reached. Stopping...")
+                    break
+
+                try:
+                    data = q.get(timeout=1)
+                except queue.Empty:
+                    continue
+
+                if recognizer.AcceptWaveform(data):
+                    result = json.loads(recognizer.Result())
+                    if "text" in result and result["text"]:
+                        speaking = True
+                        last_speech_time = time.time()
+                        result_text += " " + result["text"]
+                        print(f"[SPEECH] Segment: {result['text']}")
+                    else:
+                        print(f"[DEBUG] Empty result: {result}")
+                else:
+                    partial = json.loads(recognizer.PartialResult()).get("partial", "")
+                    if partial:
+                        speaking = True
+                        last_speech_time = time.time()
+                        # print(f"[PARTIAL] {partial}")
+
+                if speaking and (time.time() - last_speech_time) > silence_limit:
+                    print("[INFO] Silence detected. Ending recording.")
+                    break
+
+        # finalize result
         final_result = json.loads(recognizer.FinalResult()).get("text", "")
         result_text += " " + final_result
-    return result_text.strip()
+        result_text = result_text.strip()
 
+        if result_text:
+            print(f"[RESULT] You said: '{result_text}'")
+        else:
+            print("[RESULT] No clear speech detected.")
+
+        return result_text
+
+    except Exception as e:
+        print(f"[ERROR] Error during transcription: {e}")
+        return ""
 
 # ------------------- MAIN LOOP -------------------
 try:
+    print("\n\nWake word detection initialized.")
+    print("Listening for wake word...")
     while True:
         pcm = audio_stream.read(porcupine.frame_length, exception_on_overflow=False)
         pcm = struct.unpack_from("h" * porcupine.frame_length, pcm)
