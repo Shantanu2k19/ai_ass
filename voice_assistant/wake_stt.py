@@ -19,6 +19,8 @@ MODEL_PATH = "vosk-model-small-en-in-0.4"
 max_record_len = 6 #seconds
 SILENCE_LIMIT = 0.5
 MAX_LISTEN_TIME = 7
+NO_SPEECH_TIMEOUT = 2
+MAX_SPEECH_LIMIT = 12
 
 # ------------------- PORCUPINE SETUP -------------------
 porc_access_key = os.environ.get('porc_env_key')
@@ -50,16 +52,21 @@ vosk_model = Model(MODEL_PATH)
 recognizer = KaldiRecognizer(vosk_model, 16000)
 
 # ------------------- FUNCTIONS -------------------
-def listen_and_transcribe(silence_limit=SILENCE_LIMIT, max_listen_time=MAX_LISTEN_TIME):
+def listen_and_transcribe(
+    silence_limit=SILENCE_LIMIT,
+    no_speech_timeout=NO_SPEECH_TIMEOUT,         
+    long_speech_timeout=MAX_SPEECH_LIMIT
+):
     """
-    Records voice until silence is detected or max time reached.
+    Records voice until silence is detected, no-speech timeout, or long-speech timeout.
     Returns recognized text.
     """
     print("\nListening...")
     q = queue.Queue()
     speaking = False
     result_text = ""
-    start_time = time.time()
+    start_time = time.time()          # when listening started
+    first_speech_time = None          # when speech starts
     last_speech_time = start_time
 
     def callback(indata, frames, time_info, status):
@@ -76,8 +83,9 @@ def listen_and_transcribe(silence_limit=SILENCE_LIMIT, max_listen_time=MAX_LISTE
             print("[INFO] Waiting for voice input...")
 
             while True:
-                if (time.time() - start_time) > max_listen_time:
-                    print("[WARN] Max listen time reached. Stopping...")
+                # --- CASE 1: User says wake word but stays silent ---
+                if not speaking and (time.time() - start_time) > no_speech_timeout:
+                    print("[WARN] No speech detected after wake word. Timing out...")
                     break
 
                 try:
@@ -88,30 +96,41 @@ def listen_and_transcribe(silence_limit=SILENCE_LIMIT, max_listen_time=MAX_LISTE
                 if recognizer.AcceptWaveform(data):
                     result = json.loads(recognizer.Result())
                     if "text" in result and result["text"]:
-                        speaking = True
+                        if not speaking:
+                            speaking = True
+                            first_speech_time = time.time()
                         last_speech_time = time.time()
                         result_text += " " + result["text"]
-                        print(f"[SPEECH] Segment: {result['text']}")
+                        # print(f"[SPEECH] Segment: {result['text']}")
                     else:
                         print(f"[DEBUG] Empty result: {result}")
                 else:
                     partial = json.loads(recognizer.PartialResult()).get("partial", "")
                     if partial:
-                        speaking = True
+                        if not speaking:
+                            speaking = True
+                            first_speech_time = time.time()
                         last_speech_time = time.time()
                         # print(f"[PARTIAL] {partial}")
 
+                # --- CASE 2: Continuous long talking ---
+                if speaking and first_speech_time:
+                    if (time.time() - first_speech_time) > long_speech_timeout:
+                        print("[WARN] Long speech timeout reached. Stopping...")
+                        break
+
+                # --- CASE 3: Silence detected ---
                 if speaking and (time.time() - last_speech_time) > silence_limit:
                     print("[INFO] Silence detected. Ending recording.")
                     break
 
-        # finalize result
+        # --- Finalize transcription ---
         final_result = json.loads(recognizer.FinalResult()).get("text", "")
         result_text += " " + final_result
         result_text = result_text.strip()
 
         if result_text:
-            print(f"[RESULT] You said: '{result_text}'")
+            print(f"[RESULT] '{result_text}'")
         else:
             print("[RESULT] No clear speech detected.")
 
