@@ -1,7 +1,6 @@
 # module info
 
 tts: "tts.google_tts.GoogleTTS"
-stt: "stt.whisper_stt.WhisperSTT"
 intent: "intent.llm_intent.LLMIntent"
 actions: "actions.light_control.LightControl"
 

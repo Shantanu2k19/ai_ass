@@ -1,2 +1,0 @@
-# STT modules package
-

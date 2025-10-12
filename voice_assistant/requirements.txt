@@ -27,3 +27,4 @@ flake8>=7.0.0
 pvporcupine=3.0.5
 python-dotenv
 
+numpy

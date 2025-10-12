@@ -35,3 +35,7 @@ pip install paho-mqtt
 rasa train
 rasa run actions &
 rasa shell
+
+
+
+##TODO : add memory and continuous conversation

@@ -1,0 +1,173 @@
+version: "3.0"
+
+nlu:
+# ------------------------
+# GREETINGS
+# ------------------------
+- intent: greet
+  examples: |
+    - hi
+    - hello
+    - hey
+    - good morning
+    - good evening
+    - hi there
+    - hey there
+    - greetings
+    - hola
+    - hey buddy
+
+# ------------------------
+# TURN ON DEVICE
+# ------------------------
+- intent: turn_on_device
+  examples: |
+    - turn on the [fan](device)
+    - switch on the [ceiling light](device)
+    - turn on the [night light](device)
+    - power on the [lamp](device)
+    - turn on [all lights](device)
+    - turn on the [ambient lights](device)
+    - lights on
+    - switch on [bedroom light](device)
+    - turn on the [kitchen light](device)
+    - can you switch on the [fan](device)
+    - please turn on the [ceiling light](device)
+    - power on the [reading light](device)
+    - turn on [table lamp](device)
+
+# ------------------------
+# TURN OFF DEVICE
+# ------------------------
+- intent: turn_off_device
+  examples: |
+    - turn off the [fan](device)
+    - switch off the [ceiling light](device)
+    - turn off the [night light](device)
+    - power off the [lamp](device)
+    - lights off
+    - switch off [bedroom light](device)
+    - turn off the [kitchen light](device)
+    - please switch off the [fan](device)
+    - power off the [reading light](device)
+
+# ------------------------
+# ASK TIME
+# ------------------------
+- intent: ask_time
+  examples: |
+    - what time is it
+    - can you tell me the time
+    - tell me the current time
+    - do you know the time
+    - what's the time now
+    - clock
+    - time please
+
+# ------------------------
+# ASK DATE
+# ------------------------
+- intent: ask_date
+  examples: |
+    - what is today’s date
+    - tell me the date
+    - can you give me the date
+    - date please
+    - today’s date
+    - what day is it today
+
+# ------------------------
+# ASK DAY
+# ------------------------
+- intent: ask_day
+  examples: |
+    - what day is today
+    - can you tell me the day
+    - which day is it
+    - tell me today’s day
+    - day today
+
+# ------------------------
+# DEVICE ENTITY LOOKUP
+# ------------------------
+- lookup: device
+  examples: |
+    - fan
+    - electric fan
+    - ceiling light
+    - main light
+    - overhead light
+    - night light
+    - lamp
+    - table lamp
+    - kitchen light
+    - bedroom light
+    - reading light
+    - ambient lights
+    - all lights
+    - bulbs
+
+# ------------------------
+# ENTITY SYNONYMS
+# ------------------------
+- synonym: ceiling light
+  examples: |
+    - ceiling light
+    - ceilling light
+    - main light
+    - overhead light
+
+- synonym: night light
+  examples: |
+    - night light
+    - bedside light
+
+- synonym: lamp
+  examples: |
+    - lamp
+    - table lamp
+    - reading lamp
+
+- synonym: fan
+  examples: |
+    - fan
+    - electric fan
+    - room fan
+
+- synonym: kitchen light
+  examples: |
+    - kitchen light
+    - kitchen lamp
+
+- synonym: bedroom light
+  examples: |
+    - bedroom light
+    - room light
+
+- synonym: reading light
+  examples: |
+    - reading light
+    - study light
+
+- synonym: ambient lights
+  examples: |
+    - ambient lights
+    - ambient light
+    - mood lights
+
+- synonym: all lights
+  examples: |
+    - all lights
+    - every light
+    - whole house lights
+
+# ------------------------
+# FALLBACK
+# ------------------------
+- intent: nlu_fallback
+  examples: |
+    - I want pizza
+    - tell me a joke
+    - how do I code
+    - random question
+    - what is the weather in Paris
