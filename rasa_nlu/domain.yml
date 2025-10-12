@@ -7,10 +7,27 @@ intents:
   - ask_time
   - ask_day
   - ask_date
-  - nlu_fallback
+  - out_of_scope 
 
 entities:
   - device
 
+# slots:
+#   device:
+#     type: text
+#     influence_conversation: true
+#     mappings:
+#       - type: from_entity
+#         entity: device
+
 actions:
-  - action_default_fallback
+  - action_default_fallback 
+  - action_get_time
+  - action_get_date
+  - action_get_day
+  - action_turn_on_device
+  - action_turn_off_device
+
+# session_config:
+#   session_expiration_time: 60
+#   carry_over_slots_to_new_session: true

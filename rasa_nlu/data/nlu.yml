@@ -16,6 +16,11 @@ nlu:
     - greetings
     - hola
     - hey buddy
+    - what's up
+    - howdy
+    - good day
+    - yo
+    - namaste
 
 # ------------------------
 # TURN ON DEVICE
@@ -24,17 +29,26 @@ nlu:
   examples: |
     - turn on the [fan](device)
     - switch on the [ceiling light](device)
-    - turn on the [night light](device)
     - power on the [lamp](device)
     - turn on [all lights](device)
-    - turn on the [ambient lights](device)
     - lights on
-    - switch on [bedroom light](device)
-    - turn on the [kitchen light](device)
-    - can you switch on the [fan](device)
-    - please turn on the [ceiling light](device)
-    - power on the [reading light](device)
-    - turn on [table lamp](device)
+    - can you turn on the [fan](device)
+    - please switch on the [ceiling light](device)
+    - would you mind powering on the [reading light](device)?
+    - I need the [table lamp](device) on
+    - hit the [lights](device)
+    - activate the [night light](device)
+    - get the [bedroom light](device) on for me
+    - the [kitchen light](device) needs to be on
+    # Indirect commands
+    - it's a bit dark in here
+    - I can't see anything
+    - make it brighter in here
+    - it's hot in this room # This could imply turning on the fan
+    # Examples with locations
+    - turn on the [light](device) in the hallway
+    - switch on my [desk lamp](device)
+    - could you start the [fan](device) in the living room?
 
 # ------------------------
 # TURN OFF DEVICE
@@ -43,13 +57,22 @@ nlu:
   examples: |
     - turn off the [fan](device)
     - switch off the [ceiling light](device)
-    - turn off the [night light](device)
     - power off the [lamp](device)
     - lights off
-    - switch off [bedroom light](device)
-    - turn off the [kitchen light](device)
     - please switch off the [fan](device)
     - power off the [reading light](device)
+    - can you turn the [night light](device) off?
+    - shut down the [ambient lights](device)
+    - kill the [main light](device)
+    - no more [light](device)
+    - I'm leaving, turn off [all the lights](device)
+    # Indirect commands
+    - it's too bright in here
+    - please make it dark
+    - we're wasting electricity, turn off the [lights](device)
+    # Examples with locations
+    - turn off the [light](device) in the kitchen
+    - switch off the [fan](device) above me
 
 # ------------------------
 # ASK TIME
@@ -63,6 +86,10 @@ nlu:
     - what's the time now
     - clock
     - time please
+    - what time is it right now?
+    - could I get the time?
+    - what does the clock say?
+    - time
 
 # ------------------------
 # ASK DATE
@@ -74,6 +101,9 @@ nlu:
     - can you give me the date
     - date please
     - today’s date
+    - what day of the month is it?
+    - what's the date today?
+    - date
     - what day is it today
 
 # ------------------------
@@ -86,88 +116,106 @@ nlu:
     - which day is it
     - tell me today’s day
     - day today
+    - what day of the week is it?
+    - is it Monday?
+    - what's the day?
 
 # ------------------------
 # DEVICE ENTITY LOOKUP
 # ------------------------
+# A lookup table helps DIETClassifier recognize these words as important.
 - lookup: device
   examples: |
     - fan
     - electric fan
+    - ceiling fan
     - ceiling light
     - main light
     - overhead light
     - night light
+    - bedside light
     - lamp
+    - desk lamp
     - table lamp
     - kitchen light
     - bedroom light
     - reading light
     - ambient lights
+    - mood lights
     - all lights
+    - every light
     - bulbs
+    - light
 
 # ------------------------
 # ENTITY SYNONYMS
 # ------------------------
-- synonym: ceiling light
+# Synonyms map extracted entity values to a single canonical value.
+# Your synonym list is good. I've slightly consolidated it for clarity.
+- synonym: ceiling_light
   examples: |
     - ceiling light
     - ceilling light
     - main light
     - overhead light
 
-- synonym: night light
+- synonym: night_light
   examples: |
     - night light
     - bedside light
 
-- synonym: lamp
+- synonym: table_lamp
   examples: |
     - lamp
     - table lamp
     - reading lamp
+    - desk lamp
+    - study light
 
 - synonym: fan
   examples: |
     - fan
     - electric fan
     - room fan
+    - ceiling fan
 
-- synonym: kitchen light
+- synonym: kitchen_light
   examples: |
     - kitchen light
     - kitchen lamp
 
-- synonym: bedroom light
+- synonym: bedroom_light
   examples: |
     - bedroom light
     - room light
 
-- synonym: reading light
-  examples: |
-    - reading light
-    - study light
-
-- synonym: ambient lights
+- synonym: ambient_lights
   examples: |
     - ambient lights
     - ambient light
     - mood lights
 
-- synonym: all lights
+- synonym: all_lights
   examples: |
     - all lights
     - every light
     - whole house lights
+    - the lights
+    - light
 
 # ------------------------
-# FALLBACK
+# FALLBACK / OUT OF SCOPE
 # ------------------------
-- intent: nlu_fallback
+- intent: out_of_scope
   examples: |
+    # Existing examples
     - I want pizza
     - tell me a joke
+    - turn up the volume
+    - set a timer for 5 minutes
+    - change the fan speed
+    - dim the lights to 50%
+    - book a flight to Mumbai
     - how do I code
-    - random question
-    - what is the weather in Paris
+    - what is the capital of India
+    - play some music
