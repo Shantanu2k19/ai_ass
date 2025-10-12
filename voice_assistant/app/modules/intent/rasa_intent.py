@@ -1,32 +1,31 @@
 """
 Rasa Intent Recognition implementation.
-Mock implementation for demonstration purposes.
+Uses trained Rasa NLU model for intent and entity extraction.
 """
 
+import sys
+import os
 from typing import Dict, Any, List
 from .base import BaseIntent
-
-
+from .intents import ALL_INTENTS
+from rasa.core.agent import Agent
 class RasaIntent(BaseIntent):
     """Rasa Intent Recognition implementation."""
     
-    def __init__(self):
+    def __init__(self, model_path: str = None):
         super().__init__()
-        self.supported_intents = [
-            "greeting",
-            "goodbye", 
-            "weather_query",
-            "light_control",
-            "music_control",
-            "time_query",
-            "help"
-        ]
+        self.model_path = "/home/212186@HTMEDIA.NET/Desktop/ai_ass/voice_assistant/app/modules/intent/rasa_models/nlu-20251012-114449-snowy-dimension.tar.gz"
+        self.agent = None
+        self.supported_intents = ALL_INTENTS
     
     def initialize(self) -> bool:
         """Initialize Rasa intent recognition engine."""
         try:
-            # Mock initialization - in real implementation, would load Rasa model
-            self.logger.info("Initializing Rasa Intent Recognition...")
+            # self.logger.info(f"Loading Rasa NLU model from {self.model_path}...")
+            print(f"Python Executable: {sys.executable}")
+            
+            print("------------------")
+            self.agent = Agent.load(self.model_path)
             self.is_initialized = True
             self.logger.info("Rasa Intent Recognition initialized successfully")
             return True
@@ -35,58 +34,45 @@ class RasaIntent(BaseIntent):
             return False
     
     def recognize_intent(self, text: str, **kwargs) -> Dict[str, Any]:
-        """Recognize intent from text using Rasa."""
-        if not self.is_initialized:
+        """Recognize intent and entities from text using Rasa."""
+        if not self.is_initialized or not self.agent:
             return {"error": "Rasa Intent not initialized", "success": False}
         
         try:
-            # Mock implementation - in real implementation, would use Rasa NLU
             self.logger.info(f"Rasa Intent analyzing: '{text}'")
             
-            # Simple keyword-based intent recognition for demo
-            text_lower = text.lower()
+            # Use asyncio to run the async parse_message method
+            import asyncio
             
-            if any(word in text_lower for word in ["hello", "hi", "hey"]):
-                intent = "greeting"
-                confidence = 0.9
-                entities = {}
-            elif any(word in text_lower for word in ["goodbye", "bye", "see you"]):
-                intent = "goodbye"
-                confidence = 0.9
-                entities = {}
-            elif any(word in text_lower for word in ["weather", "temperature", "rain"]):
-                intent = "weather_query"
-                confidence = 0.85
-                entities = {"location": "current"}
-            elif any(word in text_lower for word in ["light", "lamp", "bulb"]):
-                intent = "light_control"
-                confidence = 0.8
-                entities = {"device": "light", "action": "toggle"}
-            elif any(word in text_lower for word in ["music", "song", "play"]):
-                intent = "music_control"
-                confidence = 0.8
-                entities = {"action": "play"}
-            elif any(word in text_lower for word in ["time", "clock", "hour"]):
-                intent = "time_query"
-                confidence = 0.9
-                entities = {}
-            else:
-                intent = "unknown"
-                confidence = 0.1
-                entities = {}
+            # Check if there's already an event loop running
+            try:
+                loop = asyncio.get_running_loop()
+                # If we're in an async context, we need to use a different approach
+                import concurrent.futures
+                with concurrent.futures.ThreadPoolExecutor() as executor:
+                    future = executor.submit(asyncio.run, self.agent.parse_message(text))
+                    result = future.result()
+            except RuntimeError:
+                # No event loop running, we can use asyncio.run directly
+                result = asyncio.run(self.agent.parse_message(text))
             
-            return {
-                "success": True,
+            intent = result.get("intent", {}).get("name", "unknown")
+            confidence = result.get("intent", {}).get("confidence", 0.0)
+            entities = {e["entity"]: e["value"] for e in result.get("entities", [])}
+
+            ret = {
                 "intent": intent,
                 "confidence": confidence,
                 "entities": entities,
+            }
+
+            print("ret==>", str(ret))
+            
+            return {
+                "success": True,
+                "intent": ret,
                 "text": text
             }
         except Exception as e:
             self.logger.error(f"Rasa Intent error: {str(e)}")
             return {"error": str(e), "success": False}
-    
-    def get_supported_intents(self) -> List[str]:
-        """Get list of supported intents."""
-        return self.supported_intents.copy()
-

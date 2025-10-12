@@ -13,7 +13,7 @@ import uvicorn
 
 from app.core.module_loader import initialize_modules, ModuleLoader
 from app.core.config import Config
-
+from app.core.processor import RequestProcessor
 # Load configuration
 config = Config()
 
@@ -108,49 +108,38 @@ async def process_intent(request: ProcessIntentRequest):
         
         logger.info(f"Processing intent for text: '{text}'")
         
-        # Step 1: Intent Recognition
-        intent_result = None
-        if "intent" in modules:
-            intent_module = modules["intent"]
-            print(f"Usin intent module : {intent_module}")
-            intent_result = intent_module.recognize_intent(text, **context)
-            logger.info(f"Intent result: {intent_result}")
-        else:
-            return {"error": "Intent module not available", "success": False}
-        
-        if not intent_result.get("success", False):
-            return {"error": "Intent recognition failed", "intent_result": intent_result, "success": False}
-        
-        intent = intent_result.get("intent", "")
-        entities = intent_result.get("entities", {})
-        
-        # Step 2: Action Execution
-        action_result = None
-        if "actions" in modules:
-            actions_module = modules["actions"]
-            action_result = actions_module.execute_action(intent, entities, **context)
-            logger.info(f"Action result: {action_result}")
-        else:
-            action_result = {"success": True, "message": "No action module available"}
-        
-        # Step 3: Audio Output (TTS)
-        if "tts" in modules:
-            tts_module = modules["tts"]
-            tts_result = tts_module.speak(action_result.get("message", f"Processed intent: {intent}"), **context)
-            logger.info(f"TTS result: {tts_result}")
-        else:
-            tts_result = {"success": True, "message": "No TTS module available"}
-        
-        return {
-            "success": True,
-            "intent": intent_result,
-            "action": action_result,
-            "response_text": action_result.get("message", f"Processed intent: {intent}")
-        }
+        intent_module = modules.get('local_intent', None)
+        llm_intent = modules.get('llm_intent', None)
+        action_module = modules.get('actions', None)
+        tts_module = modules.get('actions', None)
+
+        if not intent_module or not action_module or not tts_module:
+            return {"error": f"Missing required modules: intent[{intent_module}] action[{action_module}] tts[{tts_module}]", "success": False}
+
+        #request processing pipeling 
+        request_processor = RequestProcessor(text, intent_module, llm_intent, action_module, tts_module)
+
+        try:
+            # intent 
+            request_processor.process_intent()
+
+            # action
+            request_processor.process_action()
+
+            # speech response 
+            request_processor.process_speechresponse()
+            
+            return { "success": True }
+        except Exception as ex: 
+            request_processor.process_speechresponse("Sorry. Something went wrong.")
+            return { "success": False , "mssg": str(ex)[:900]}
         
     except Exception as e:
         logger.error(f"Error processing intent: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+        return {
+            "success": False,
+            "mssg": str(e)[:900]
+        }
 
 
 if __name__ == "__main__":

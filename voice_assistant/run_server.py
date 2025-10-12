@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/Desktop/ai_ass/voice_assistant/venv_39/bin/python
 """
 Server runner for the Voice Assistant Platform.
 """

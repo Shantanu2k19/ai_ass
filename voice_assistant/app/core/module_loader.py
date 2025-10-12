@@ -33,7 +33,12 @@ class ModuleLoader:
             
             # Get the class and instantiate it
             module_class = getattr(module, class_name)
-            instance = module_class()
+            
+            # Pass config to modules that need it (like actions)
+            if module_name == 'actions':
+                instance = module_class(self.config.config_data)
+            else:
+                instance = module_class()
             
             self.logger.info(f"{module_name}  \t => {module_path}.{class_name}")
             return instance

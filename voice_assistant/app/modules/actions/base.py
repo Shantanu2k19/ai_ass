@@ -13,17 +13,7 @@ class BaseActions(ABC):
     
     def __init__(self):
         self.logger = logging.getLogger(self.__class__.__name__)
-        self.is_initialized = False
-    
-    @abstractmethod
-    def initialize(self) -> bool:
-        """
-        Initialize the actions module.
-        
-        Returns:
-            bool: True if initialization successful, False otherwise
-        """
-        pass
+        # self.is_initialized = False
     
     @abstractmethod
     def execute_action(self, intent: str, entities: Dict[str, Any], **kwargs) -> Dict[str, Any]:
@@ -40,6 +30,9 @@ class BaseActions(ABC):
         """
         pass
     
+
+    '''
+    # Not required as of now
     @abstractmethod
     def get_available_actions(self) -> List[str]:
         """
@@ -73,4 +66,4 @@ class BaseActions(ABC):
             "initialized": self.is_initialized,
             "available_actions": self.get_available_actions()
         }
-
+    '''

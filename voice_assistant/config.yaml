@@ -1,18 +1,21 @@
 # module info
 
 tts: "tts.google_tts.GoogleTTS"
-intent: "intent.llm_intent.LLMIntent"
-actions: "actions.light_control.LightControl"
+local_intent: "intent.rasa_intent.RasaIntent"
+llm_intent: "intent.llm_intent.ChatGPTIntent"
+actions: "actions.all_actions.Actions"
 
 # Optional: Additional settings
 settings:
   # MQTT configuration (optional)
   mqtt:
-    enabled: false
-    broker: "localhost"
-    port: 1883
-    username: null
-    password: null
+    enabled: true
+    broker_host: "192.168.1.16"
+    broker_port: 1883
+    username: "myuser"
+    password: "mypassword"
+    keepalive: 60
+    qos: 0
   
   # Logging configuration
   logging:

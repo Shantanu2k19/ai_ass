@@ -24,7 +24,10 @@ black>=24.0.0
 flake8>=7.0.0
 
 
-pvporcupine=3.0.5
-python-dotenv
+# pvporcupine=3.0.5
+# python-dotenv
 
-numpy
+# numpy
+
+# sudo apt install mosquitto mosquitto-clients
+# pip install paho-mqtt

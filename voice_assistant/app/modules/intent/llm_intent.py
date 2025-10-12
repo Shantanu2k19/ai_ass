@@ -7,7 +7,7 @@ from typing import Dict, Any, List
 from .base import BaseIntent
 
 
-class LLMIntent(BaseIntent):
+class ChatGPTIntent(BaseIntent):
     """LLM-based Intent Recognition implementation."""
     
     def __init__(self):
@@ -97,8 +97,5 @@ class LLMIntent(BaseIntent):
         except Exception as e:
             self.logger.error(f"LLM Intent error: {str(e)}")
             return {"error": str(e), "success": False}
-    
-    def get_supported_intents(self) -> List[str]:
-        """Get list of supported intents."""
-        return self.supported_intents.copy()
+
 

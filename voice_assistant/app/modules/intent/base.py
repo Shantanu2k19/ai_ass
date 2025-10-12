@@ -39,6 +39,10 @@ class BaseIntent(ABC):
         """
         pass
     
+
+    '''
+    # Not required as of now 
+    
     @abstractmethod
     def get_supported_intents(self) -> List[str]:
         """
@@ -75,4 +79,4 @@ class BaseIntent(ABC):
             "initialized": self.is_initialized,
             "supported_intents": self.get_supported_intents()
         }
-
+    '''

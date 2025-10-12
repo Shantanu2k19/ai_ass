@@ -2,12 +2,12 @@
 
 echo "AI Ass starting..."
 
-if [ ! -d "venv" ]; then
-    echo "Virtual environment not found. Please run setup."
+if [ ! -d "venv_39" ]; then
+    echo "Virtual environment venv_39 not found. Please run setup."
     exit 1
 fi
 
-source venv/bin/activate
+source venv_39/bin/activate
 # python test_setup.py
 
 if [ $? -eq 0 ]; then
