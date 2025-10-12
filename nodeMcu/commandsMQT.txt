@@ -1,57 +1,68 @@
+# MQTT Setup & Debug Guide (Mosquitto on Linux LAN)
+
+# 1. Install Mosquitto Broker & Clients
 sudo apt update
 sudo apt install mosquitto mosquitto-clients -y
 sudo systemctl start mosquitto
+sudo systemctl enable mosquitto
+sudo systemctl status mosquitto
 
-
-212186@HTMEDIA.NET@SHLGLPG041FFL:~$ sudo systemctl enable mosquitto
-
-
-212186@HTMEDIA.NET@SHLGLPG041FFL:~$ sudo systemctl start mosquitto
-212186@HTMEDIA.NET@SHLGLPG041FFL:~$ 
-212186@HTMEDIA.NET@SHLGLPG041FFL:~$ sudo systemctl status mosquitto
-
+# 2. Test Local MQTT
 mosquitto_sub -h localhost -t "home/lights"
+mosquitto_pub -h localhost -t "home/lights" -m "ON"
+mosquitto_pub -h localhost -t "home/lights" -m "OFF"
 
-
-1999  mosquitto_pub -h localhost -t "home/lights" -m "ON"
-2000  mosquitto_pub -h localhost -t "home/lights" -m "OFF"
-
-
-
-debug mqt issue 
-
-
+# 3. Allow LAN Access
+ip a
 ping <BROKER_IP>
-
-
 sudo nano /etc/mosquitto/mosquitto.conf
-
-
+# Add/Update:
 listener 1883
 allow_anonymous true
 sudo systemctl restart mosquitto
 sudo netstat -tulpn | grep 1883
-Should show 0.0.0.0:1883 → listening on all network interfaces.
-
-check firewall:
 sudo ufw status
 sudo ufw allow 1883/tcp
 sudo ufw reload
 
-test :: 
-
-
+# Test from another device:
 mosquitto_sub -h <BROKER_IP> -t "home/livingroom/light"
 mosquitto_pub -h <BROKER_IP> -t "home/livingroom/light" -m "ON"
 
-
-create user password: 
-sudo mosquitto_passwd -c /etc/mosquitto/passwd myuser
-
-
-uodate config: 
+# 4. Enable Username/Password
+sudo mosquitto_passwd -c /etc/mosquitto/passwd myuser       # first user
+sudo mosquitto_passwd /etc/mosquitto/passwd zodiac          # add more users
+sudo nano /etc/mosquitto/mosquitto.conf
+# Update config:
 allow_anonymous false
 password_file /etc/mosquitto/passwd
-
-
+listener 1883
 sudo systemctl restart mosquitto
+
+# 5. Fix Permissions if Broker Fails
+sudo mkdir -p /var/lib/mosquitto
+sudo chown mosquitto:mosquitto /var/lib/mosquitto
+sudo mkdir -p /var/log/mosquitto
+sudo chown mosquitto:mosquitto /var/log/mosquitto
+sudo touch /var/log/mosquitto/mosquitto.log
+sudo chown mosquitto:mosquitto /var/log/mosquitto/mosquitto.log
+sudo chown mosquitto:mosquitto /etc/mosquitto/passwd
+sudo chmod 600 /etc/mosquitto/passwd
+
+# 6. Connect with Username/Password
+mosquitto_sub -h <BROKER_IP> -t "home/livingroom/light" -u myuser -P mypassword
+mosquitto_pub -h <BROKER_IP> -t "home/livingroom/light" -m "ON" -u myuser -P mypassword
+# Without -u/-P -> connection refused if allow_anonymous false
+
+# 7. Debugging
+mosquitto -c /etc/mosquitto/mosquitto.conf -v    # verbose logs
+# Watch connections, auth failures, and messages in real-time
+
+# Tips
+# - Restart broker after config/password changes
+# - Use -c only first time to create password file
+# - Existing connections may still send messages until disconnected
+# - Ensure all devices are on the same subnet for LAN testing
+
+
+get ip : ip a
