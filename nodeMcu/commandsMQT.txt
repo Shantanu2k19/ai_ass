@@ -1,0 +1,57 @@
+sudo apt update
+sudo apt install mosquitto mosquitto-clients -y
+sudo systemctl start mosquitto
+
+
+212186@HTMEDIA.NET@SHLGLPG041FFL:~$ sudo systemctl enable mosquitto
+
+
+212186@HTMEDIA.NET@SHLGLPG041FFL:~$ sudo systemctl start mosquitto
+212186@HTMEDIA.NET@SHLGLPG041FFL:~$ 
+212186@HTMEDIA.NET@SHLGLPG041FFL:~$ sudo systemctl status mosquitto
+
+mosquitto_sub -h localhost -t "home/lights"
+
+
+1999  mosquitto_pub -h localhost -t "home/lights" -m "ON"
+2000  mosquitto_pub -h localhost -t "home/lights" -m "OFF"
+
+
+
+debug mqt issue 
+
+
+ping <BROKER_IP>
+
+
+sudo nano /etc/mosquitto/mosquitto.conf
+
+
+listener 1883
+allow_anonymous true
+sudo systemctl restart mosquitto
+sudo netstat -tulpn | grep 1883
+Should show 0.0.0.0:1883 → listening on all network interfaces.
+
+check firewall:
+sudo ufw status
+sudo ufw allow 1883/tcp
+sudo ufw reload
+
+test :: 
+
+
+mosquitto_sub -h <BROKER_IP> -t "home/livingroom/light"
+mosquitto_pub -h <BROKER_IP> -t "home/livingroom/light" -m "ON"
+
+
+create user password: 
+sudo mosquitto_passwd -c /etc/mosquitto/passwd myuser
+
+
+uodate config: 
+allow_anonymous false
+password_file /etc/mosquitto/passwd
+
+
+sudo systemctl restart mosquitto
