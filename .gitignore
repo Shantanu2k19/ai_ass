@@ -22,3 +22,4 @@ rasa_env/
 rasa_39/
 venv_39/
 voice_assistant/app/modules/intent/rasa_models/
+voice_assistant/config.yaml

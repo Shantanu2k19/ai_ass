@@ -59,19 +59,12 @@ class RasaIntent(BaseIntent):
             intent = result.get("intent", {}).get("name", "unknown")
             confidence = result.get("intent", {}).get("confidence", 0.0)
             entities = {e["entity"]: e["value"] for e in result.get("entities", [])}
-
-            ret = {
-                "intent": intent,
-                "confidence": confidence,
-                "entities": entities,
-            }
-
-            print("ret==>", str(ret))
-            
+    
             return {
                 "success": True,
-                "intent": ret,
-                "text": text
+                "intent": intent,
+                "confidence": confidence,
+                "entities": entities
             }
         except Exception as e:
             self.logger.error(f"Rasa Intent error: {str(e)}")

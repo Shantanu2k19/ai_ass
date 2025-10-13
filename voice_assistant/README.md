@@ -387,3 +387,12 @@ For support and questions:
 ---
 
 **Happy Voice Assisting! 🎤🤖**
+
+
+
+
+
+#### todo:
+add scheduler using hreading, and improve rasa model to also give eta 
+modes in ai talkback, TheHood mode, use different api for llm 
+conversation lock, continue conversation

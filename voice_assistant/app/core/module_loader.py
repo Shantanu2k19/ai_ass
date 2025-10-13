@@ -40,6 +40,17 @@ class ModuleLoader:
             else:
                 instance = module_class()
             
+            # Initialize the module if it has an initialize method
+            if hasattr(instance, 'initialize'):
+                try:
+                    init_result = instance.initialize()
+                    if init_result:
+                        self.logger.info(f"{module_name} initialized successfully")
+                    else:
+                        self.logger.warning(f"{module_name} initialization failed")
+                except Exception as e:
+                    self.logger.error(f"Failed to initialize {module_name}: {str(e)}")
+            
             self.logger.info(f"{module_name}  \t => {module_path}.{class_name}")
             return instance
             

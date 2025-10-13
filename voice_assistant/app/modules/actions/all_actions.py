@@ -7,6 +7,7 @@ from typing import Dict, Any, List, Optional
 from .base import BaseActions
 from .mqtt_handler import get_mqtt_handler, MQTTHandler
 from app.modules.intent.intents import ALL_INTENTS, GREET, TURN_ON_DEVICE, TURN_OFF_DEVICE, ASK_TIME, ASK_DAY, ASK_DATE, OUT_OF_SCOPE
+import random
 
 class Actions(BaseActions):
     """All implementation with dynamic intent handling."""
@@ -116,10 +117,22 @@ class Actions(BaseActions):
     def _handle_greet(self, entities: Dict[str, Any], **kwargs) -> Dict[str, Any]:
         """Handle greeting intent."""
         name = entities.get("name", "there")
+        greeting_responses = [
+            "Hi.",
+            "Hello.",
+            "Hey there.",
+            "Hello there.",
+            "Hi, how can I help?",
+            "Hey, how can I assist?",
+            "Hello, how can I help?",
+            "Hi, ready for your command.",
+            "Hey there, what can I do for you?",
+            "Hi, I am Online and ready.",
+            "Hi, All Systems active. How can I help?",
+        ]
         return {
             "success": True,
-            "message": f"Hello {name}! How can I help you today?",
-            "intent": "greet"
+            "speech_op": random.choice(greeting_responses),
         }
     
 
@@ -127,8 +140,12 @@ class Actions(BaseActions):
     def _handle_turn_on_device(self, entities: Dict[str, Any], **kwargs) -> Dict[str, Any]:
         """Handle turn on device intent."""
         device = entities.get("device", None)
-        room = entities.get("room", "living_room")
-        
+        eta = entities.get("eta", None)
+
+        if eta:
+            #TODO implement
+            pass
+
         if not device:
             return {
                 "success": False,
@@ -137,7 +154,7 @@ class Actions(BaseActions):
 
         # Try to control device via MQTT
         if self.mqtt_handler and self.mqtt_handler.is_initialized:
-            topic = f"home/{room}/{device}"
+            topic = f"home/myroom/{device}"
             message = "ON"
             
             mqtt_result = self.mqtt_handler.publish_message(topic, message)
@@ -145,38 +162,22 @@ class Actions(BaseActions):
             if mqtt_result.get("success", False):
                 return {
                     "success": True,
-                    "message": f"Turning on {device} in {room}",
-                    "device": device,
-                    "room": room,
-                    "action": "turn_on",
-                    "mqtt_topic": topic,
-                    "mqtt_message": message
+                    "speech_op": "Turning on " + device
                 }
             else:
-                return {
-                    "success": False,
-                    "message": f"Failed to control {device}: {mqtt_result.get('error', 'Unknown MQTT error')}",
-                    "device": device,
-                    "room": room,
-                    "action": "turn_on",
-                    "mqtt_error": mqtt_result.get('error')
-                }
+                return { "success": False }
         else:
-            # Fallback: MQTT not available, return mock response
-            return {
-                "success": True,
-                "message": f"Turning on {device} in {room} (MQTT not available - mock response)",
-                "device": device,
-                "room": room,
-                "action": "turn_on",
-                "note": "MQTT not available"
-            }
+            return { "success": False }
     
     def _handle_turn_off_device(self, entities: Dict[str, Any], **kwargs) -> Dict[str, Any]:
         """Handle turn off device intent."""
         device = entities.get("device", None)
-        room = entities.get("room", "living_room")
-        
+        eta = entities.get("eta", None)
+
+        if eta:
+            #TODO implement
+            pass
+
         if not device:
             return {
                 "success": False,
@@ -185,7 +186,7 @@ class Actions(BaseActions):
 
         # Try to control device via MQTT
         if self.mqtt_handler and self.mqtt_handler.is_initialized:
-            topic = f"home/{room}/{device}"
+            topic = f"home/myroom/{device}"
             message = "OFF"
             
             mqtt_result = self.mqtt_handler.publish_message(topic, message)
@@ -193,33 +194,13 @@ class Actions(BaseActions):
             if mqtt_result.get("success", False):
                 return {
                     "success": True,
-                    "message": f"Turning off {device} in {room}",
-                    "device": device,
-                    "room": room,
-                    "action": "turn_off",
-                    "mqtt_topic": topic,
-                    "mqtt_message": message
+                    "speech_op": f"Turning off {device}",
                 }
             else:
-                return {
-                    "success": False,
-                    "message": f"Failed to control {device}: {mqtt_result.get('error', 'Unknown MQTT error')}",
-                    "device": device,
-                    "room": room,
-                    "action": "turn_off",
-                    "mqtt_error": mqtt_result.get('error')
-                }
+                return { "success": False }
         else:
-            # Fallback: MQTT not available, return mock response
-            return {
-                "success": True,
-                "message": f"Turning off {device} in {room} (MQTT not available - mock response)",
-                "device": device,
-                "room": room,
-                "action": "turn_off",
-                "note": "MQTT not available"
-            }
-    
+            return { "success": False }
+
     def _handle_ask_time(self, entities: Dict[str, Any], **kwargs) -> Dict[str, Any]:
         """Handle ask time intent."""
         from datetime import datetime
@@ -227,8 +208,7 @@ class Actions(BaseActions):
         current_time = datetime.now().strftime("%I:%M %p")
         return {
             "success": True,
-            "message": f"The current time is {current_time}",
-            "time": current_time
+            "speech_op": f"The current time is {current_time}",
         }
     
     def _handle_ask_day(self, entities: Dict[str, Any], **kwargs) -> Dict[str, Any]:
@@ -238,8 +218,7 @@ class Actions(BaseActions):
         current_day = datetime.now().strftime("%A")
         return {
             "success": True,
-            "message": f"Today is {current_day}",
-            "day": current_day
+            "speech_op": f"Today is {current_day}",
         }
     
     def _handle_ask_date(self, entities: Dict[str, Any], **kwargs) -> Dict[str, Any]:
@@ -249,8 +228,7 @@ class Actions(BaseActions):
         current_date = datetime.now().strftime("%B %d, %Y")
         return {
             "success": True,
-            "message": f"Today's date is {current_date}",
-            "date": current_date
+            "speech_op": f"Today's date is {current_date}",
         }
     
     def _handle_out_of_scope(self, entities: Dict[str, Any], **kwargs) -> Dict[str, Any]:
@@ -258,6 +236,5 @@ class Actions(BaseActions):
         return {
             "success": False,
             "message": "I'm sorry, I didn't understand that. Could you please rephrase?",
-            "intent": "out_of_scope"
         }
 

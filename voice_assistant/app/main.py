@@ -111,7 +111,7 @@ async def process_intent(request: ProcessIntentRequest):
         intent_module = modules.get('local_intent', None)
         llm_intent = modules.get('llm_intent', None)
         action_module = modules.get('actions', None)
-        tts_module = modules.get('actions', None)
+        tts_module = modules.get('tts', None)
 
         if not intent_module or not action_module or not tts_module:
             return {"error": f"Missing required modules: intent[{intent_module}] action[{action_module}] tts[{tts_module}]", "success": False}

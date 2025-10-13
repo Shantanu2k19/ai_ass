@@ -1,5 +1,5 @@
 import uuid
-from app.modules.intent.intents import OUT_OF_SCOPE
+from app.modules.intent.intents import OUT_OF_SCOPE, ALL_INTENTS
 from constants import INTENT_CONFIDENCE_THRESHOLD
 import logging as log 
 logger = log.getLogger(__name__)
@@ -22,8 +22,10 @@ class RequestProcessor():
         self.intent = None
         self.entities = None 
         self.confidence = None 
+        self.action_result = None
 
         self.actionable_command = False
+        self.speech_text = None
 
         # logger 
         self.log_tag = f"[{str(uuid.uuid4())[:4]}]"
@@ -42,28 +44,78 @@ class RequestProcessor():
             logger.info(f"{self.log_tag} LLM intent fallback")
             
             intent_result = self.llm_module.recognize_intent(self.text, **self.context)
-
-            #TODO 
-        
-        #  self.actionable_command = True
+            
+            # Update with LLM results
+            self.intent = intent_result.get("intent", "")
+            self.confidence = intent_result.get("confidence", 0)
+            self.entities = intent_result.get("entities", {})
+            
+            logger.info(f"{self.log_tag} LLM Intent[{self.intent}] confidence[{self.confidence}] entities[{self.entities}]")
         
         self.save_to_db()
-        return
+
+        return 
+
+    def _determine_actionable_command(self):
+        """Determine if the current intent requires action execution."""
+        # List of intents that require action execution
+        actionable_intents = [
+            "greet", "turn_on_device", "turn_off_device", 
+            "ask_time", "ask_day", "ask_date", "out_of_scope"
+        ]
+        
+        # Set actionable_command based on intent
+        self.actionable_command = self.intent in actionable_intents
+        
+        logger.info(f"{self.log_tag} Actionable command: {self.actionable_command} for intent: {self.intent}")
 
     def process_action(self):
-        if not self.actionable_command:
-            return 
+        """Execute action based on detected intent."""
+        if self.intent not in ALL_INTENTS:
+            logger.info(f"{self.log_tag} No action required for intent: {self.intent}")
 
-        process_action_result = self.action_module.execute_action(self.intent, self.entities, **self.context)
-
-        logger.info(f"{self.log_tag} Action[{self.action}] result[{process_action_result}]")
-
-        if process_action_result.get("success", False):
-            self.save_to_db()
+        logger.info(f"{self.log_tag} Executing action for intent: {self.intent}")
+        
+        try:
+            action_result = self.action_module.execute_action(self.intent, self.entities, **self.context)
+            
+            logger.info(f"{self.log_tag} Action result: {action_result}")
+            
+            # Store action result for potential use in speech response
+            self.action_result = action_result.get('success', False)
+            self.speech_text = action_result.get('speech_op', None)
+            
+            if self.action_result == False:
+                self.speech_text = "Something went wrong. Try again later."
+                self.save_to_db()
+            else:
+                logger.warning(f"{self.log_tag} Action execution failed: {action_result.get('error', 'Unknown error')}")
+                
+        except Exception as e:
+            logger.error(f"{self.log_tag} Action execution error: {str(e)}")
+            self.speech_text = "Something went wrong. Try again later."
+            self.action_result = False
+        
         return
 
-    def process_speechresponse(self, text: str=None):
-        pass
+    def process_speechresponse(self):
+        """Generate speech response based on action result or provided text."""
+        if not self.speech_text:
+            self.speech_text = "Something went wrong. Try again later."
+        
+        # Generate TTS audio if TTS module is available
+        if self.tts_module:
+            try:
+                tts_result = self.tts_module.speak(self.speech_text)
+                if tts_result.get("success", False):
+                    logger.info(f"{self.log_tag} TTS audio generated successfully")
+                    return { "success": True }
+                else:
+                    logger.warning(f"{self.log_tag} TTS generation failed: {tts_result.get('error')}")
+            except Exception as e:
+                logger.error(f"{self.log_tag} TTS error: {str(e)}")
+        
+        return { "success": True }
 
     def save_to_db(self):
         # TODO
