@@ -1,6 +1,6 @@
 # module info
 
-tts: "tts.google_tts.GoogleTTS"
+tts: "tts.piper_tts.PiperTTS"
 local_intent: "intent.rasa_intent.RasaIntent"
 llm_intent: "intent.llm_intent.ChatGPTIntent"
 actions: "actions.all_actions.Actions"

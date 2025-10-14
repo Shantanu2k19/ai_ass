@@ -9,12 +9,13 @@ from typing import Dict, Any, List
 from .base import BaseIntent
 from .intents import ALL_INTENTS
 from rasa.core.agent import Agent
+from ...constants import RASA_MODEL_PATH
 class RasaIntent(BaseIntent):
     """Rasa Intent Recognition implementation."""
     
     def __init__(self, model_path: str = None):
         super().__init__()
-        self.model_path = "/home/212186@HTMEDIA.NET/Desktop/ai_ass/voice_assistant/app/modules/intent/rasa_models/nlu-20251012-114449-snowy-dimension.tar.gz"
+        self.model_path = model_path or RASA_MODEL_PATH
         self.agent = None
         self.supported_intents = ALL_INTENTS
     

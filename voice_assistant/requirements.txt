@@ -17,6 +17,10 @@ paho-mqtt>=1.6.1,<2.0.0
 python-multipart>=0.0.5
 python-dotenv>=0.20.0
 
+# TTS dependencies
+piper-tts>=1.2.0
+simpleaudio>=1.0.4
+
 # Development / testing / linting
 pytest>=7.0.0
 pytest-asyncio>=0.20.0
