@@ -105,15 +105,28 @@ class PiperTTS(BaseTTS):
             
             self.logger.info(f"Audio generated: {sample_rate}Hz, {sample_channels} channel(s), {duration:.2f}s")
             
+            # Play the audio using simpleaudio
+            try:
+                import simpleaudio as sa
+                self.logger.info("Playing audio...")
+                play_obj = sa.play_buffer(
+                    wav_bytes,
+                    num_channels=sample_channels,
+                    bytes_per_sample=sample_width,
+                    sample_rate=sample_rate
+                )
+                play_obj.wait_done()
+                self.logger.info("Audio playback completed!")
+            except ImportError:
+                self.logger.warning("simpleaudio not available - audio generated but not played")
+            except Exception as play_error:
+                self.logger.error(f"Error playing audio: {play_error}")
+            
             return {
                 "success": True,
                 "text": text,
                 "voice": self.current_voice,
                 "audio_file": audio_file_path,
-                "audio_data": wav_bytes,
-                "sample_rate": sample_rate,
-                "sample_channels": sample_channels,
-                "sample_width": sample_width,
                 "duration": duration,
                 "quality": "high"
             }

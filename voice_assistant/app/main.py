@@ -141,6 +141,112 @@ async def process_intent(request: ProcessIntentRequest):
             "mssg": str(e)[:900]
         }
 
+# test APIs
+
+class TTSRequest(BaseModel):
+    """Request model for TTS testing."""
+    text: str
+    voice: Optional[str] = None
+    language: Optional[str] = None
+
+class IntentTestRequest(BaseModel):
+    """Request model for intent recognition testing."""
+    text: str
+    context: Optional[Dict[str, Any]] = None
+
+@app.post("/test/tts")
+async def test_tts(request: TTSRequest):
+    """
+    Simple TTS API - send text and hear output.
+    """
+    try:
+        tts_module = modules.get('tts', None)
+        
+        if not tts_module:
+            return {
+                "success": False,
+                "error": "TTS module not available"
+            }
+        
+        logger.info(f"Speaking text: '{request.text}'")
+        
+        # Prepare TTS parameters
+        tts_params = {}
+        if request.voice:
+            tts_params['voice'] = request.voice
+        if request.language:
+            tts_params['language'] = request.language
+            
+        # Call TTS module to generate and play audio
+        result = tts_module.speak(request.text, **tts_params)
+        
+        # Check if TTS was successful
+        if result.get('success', False):
+            return {
+                "success": True,
+                "message": f"Spoke: '{request.text}'"
+            }
+        else:
+            return {
+                "success": False,
+                "error": result.get('error', 'TTS failed')
+            }
+        
+    except Exception as e:
+        logger.error(f"Error in TTS: {str(e)}")
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+@app.post("/test/intent")
+async def test_intent(request: IntentTestRequest):
+    """
+    Test intent recognition module by analyzing text for intent.
+    """
+    try:
+        intent_module = modules.get('local_intent', None)
+        llm_intent_module = modules.get('llm_intent', None)
+        
+        if not intent_module and not llm_intent_module:
+            return {
+                "success": False,
+                "error": "No intent recognition modules available"
+            }
+        
+        logger.info(f"Testing intent recognition with text: '{request.text}'")
+        
+        results = {}
+        
+        # Test local intent module if available
+        if intent_module:
+            try:
+                local_result = intent_module.recognize_intent(request.text)
+                results['local_intent'] = local_result
+            except Exception as e:
+                results['local_intent'] = {"error": str(e)}
+        
+        # Test LLM intent module if available
+        if llm_intent_module:
+            try:
+                llm_result = llm_intent_module.recognize_intent(request.text)
+                results['llm_intent'] = llm_result
+            except Exception as e:
+                results['llm_intent'] = {"error": str(e)}
+        
+        return {
+            "success": True,
+            "text": request.text,
+            "context": request.context,
+            "results": results
+        }
+        
+    except Exception as e:
+        logger.error(f"Error testing intent recognition: {str(e)}")
+        return {
+            "success": False,
+            "error": str(e)
+        }
 
 if __name__ == "__main__":
     uvicorn.run(
