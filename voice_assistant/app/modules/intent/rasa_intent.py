@@ -9,7 +9,7 @@ from typing import Dict, Any, List
 from .base import BaseIntent
 from .intents import ALL_INTENTS
 from rasa.core.agent import Agent
-from ...constants import RASA_MODEL_PATH
+from app.constants import RASA_MODEL_PATH
 class RasaIntent(BaseIntent):
     """Rasa Intent Recognition implementation."""
     

@@ -10,6 +10,8 @@ from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 import uvicorn
+from dotenv import load_dotenv
+load_dotenv()
 
 from app.core.module_loader import initialize_modules, ModuleLoader
 from app.core.config import Config

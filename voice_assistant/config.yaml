@@ -2,7 +2,7 @@
 
 tts: "tts.piper_tts.PiperTTS"
 local_intent: "intent.rasa_intent.RasaIntent"
-llm_intent: "intent.llm_intent.ChatGPTIntent"
+llm_intent: "intent.llm_intent.LLMIntent"
 actions: "actions.all_actions.Actions"
 
 # Optional: Additional settings
@@ -28,4 +28,9 @@ settings:
     host: "0.0.0.0"
     port: 8000
     reload: true
+  
+  # LLM configuration
+  llm:
+    # LLM provider: "chatgpt" or "gemini"
+    provider: "gemini"
 

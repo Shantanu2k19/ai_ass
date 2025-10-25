@@ -34,8 +34,8 @@ class ModuleLoader:
             # Get the class and instantiate it
             module_class = getattr(module, class_name)
             
-            # Pass config to modules that need it (like actions)
-            if module_name == 'actions':
+            # Pass config to modules that need it (like actions and llm_intent)
+            if module_name in ['actions', 'llm_intent']:
                 instance = module_class(self.config.config_data)
             else:
                 instance = module_class()

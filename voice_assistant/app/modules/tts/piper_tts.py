@@ -10,7 +10,7 @@ from .base import BaseTTS
 import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
-from constants import PIPER_MODELS
+from app.constants import PIPER_MODELS
 
 try:
     from piper import PiperVoice

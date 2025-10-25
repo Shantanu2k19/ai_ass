@@ -1,6 +1,6 @@
 import uuid
 from app.modules.intent.intents import OUT_OF_SCOPE, ALL_INTENTS
-from constants import INTENT_CONFIDENCE_THRESHOLD
+from app.constants import INTENT_CONFIDENCE_THRESHOLD
 import logging as log 
 logger = log.getLogger(__name__)
 
@@ -32,24 +32,22 @@ class RequestProcessor():
 
     
     def process_intent(self):
-        intent_result = self.intent_module.recognize_intent(self.text, **self.context)
-
+        # Use LLM as primary intent recognizer
+        logger.info(f"{self.log_tag} Using LLM for intent recognition")
+        
+        intent_result = self.llm_module.recognize_intent(self.text, **self.context)
+        
+        # Update with LLM results
         self.intent = intent_result.get("intent", "")
         self.confidence = intent_result.get("confidence", 0)
         self.entities = intent_result.get("entities", {})
-
-        logger.info(f"{self.log_tag} Intent[{self.intent}] confidence[{self.confidence}] entities[{self.entities}]")
-
-        if self.intent == OUT_OF_SCOPE or self.confidence <= INTENT_CONFIDENCE_THRESHOLD: 
-            logger.info(f"{self.log_tag} LLM intent fallback")
-            
-            intent_result = self.llm_module.recognize_intent(self.text, **self.context)
-            
-            # Update with LLM results
-            self.intent = intent_result.get("intent", "")
-            self.confidence = intent_result.get("confidence", 0)
-            self.entities = intent_result.get("entities", {})
-            
+        
+        # Handle direct response from LLM
+        if self.intent == "direct_response":
+            self.speech_text = intent_result.get("speech_response", "I'm sorry, I couldn't process that request.")
+            self.actionable_command = False
+            logger.info(f"{self.log_tag} LLM Direct Response: {self.speech_text}")
+        else:
             logger.info(f"{self.log_tag} LLM Intent[{self.intent}] confidence[{self.confidence}] entities[{self.entities}]")
         
         self.save_to_db()
@@ -64,15 +62,27 @@ class RequestProcessor():
             "ask_time", "ask_day", "ask_date", "out_of_scope"
         ]
         
-        # Set actionable_command based on intent
-        self.actionable_command = self.intent in actionable_intents
-        
-        logger.info(f"{self.log_tag} Actionable command: {self.actionable_command} for intent: {self.intent}")
+        # Direct responses don't need action execution
+        if self.intent == "direct_response":
+            self.actionable_command = False
+            logger.info(f"{self.log_tag} Direct response - no action required")
+        else:
+            # Set actionable_command based on intent
+            self.actionable_command = self.intent in actionable_intents
+            logger.info(f"{self.log_tag} Actionable command: {self.actionable_command} for intent: {self.intent}")
 
     def process_action(self):
         """Execute action based on detected intent."""
+        # Skip action execution for direct responses
+        if self.intent == "direct_response":
+            logger.info(f"{self.log_tag} Direct response - skipping action execution")
+            # Preserve the speech_text from LLM response
+            logger.info(f"{self.log_tag} Preserving speech text: {self.speech_text}")
+            return
+            
         if self.intent not in ALL_INTENTS:
             logger.info(f"{self.log_tag} No action required for intent: {self.intent}")
+            return
 
         logger.info(f"{self.log_tag} Executing action for intent: {self.intent}")
         
@@ -83,7 +93,11 @@ class RequestProcessor():
             
             # Store action result for potential use in speech response
             self.action_result = action_result.get('success', False)
-            self.speech_text = action_result.get('speech_op', None)
+            
+            # Only update speech_text if action provides one
+            if action_result.get('speech_op'):
+                self.speech_text = action_result.get('speech_op')
+                logger.info(f"{self.log_tag} Action provided speech: {self.speech_text}")
             
             if self.action_result == False:
                 self.speech_text = "Something went wrong. Try again later."
