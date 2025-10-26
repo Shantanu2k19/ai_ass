@@ -8,7 +8,8 @@ import os
 import logging
 
 # Add the project root to Python path
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, project_root)
 
 def test_imports():
     """Test that all modules can be imported."""
@@ -24,7 +25,6 @@ def test_imports():
     
     try:
         from app.modules.tts.base import BaseTTS
-        from app.modules.stt.base import BaseSTT
         from app.modules.intent.base import BaseIntent
         from app.modules.actions.base import BaseActions
         print("Base module classes imported successfully")
@@ -33,10 +33,9 @@ def test_imports():
         return False
     
     try:
-        from app.modules.tts.google_tts import GoogleTTS
-        from app.modules.stt.whisper_stt import WhisperSTT
+        from app.modules.tts.piper_tts import PiperTTS
         from app.modules.intent.llm_intent import LLMIntent
-        from app.modules.actions.light_control import LightControl
+        from app.modules.actions.all_actions import Actions
         print("Concrete module implementations imported successfully")
     except ImportError as e:
         print(f"Failed to import concrete implementations: {e}")
@@ -55,13 +54,11 @@ def test_config_loading():
         
         # Test getting module configs
         tts_config = config.get_module_config("tts")
-        stt_config = config.get_module_config("stt")
-        intent_config = config.get_module_config("intent")
+        llm_intent_config = config.get_module_config("llm_intent")
         actions_config = config.get_module_config("actions")
         
         print(f"  TTS: {tts_config}")
-        print(f"  STT: {stt_config}")
-        print(f"  Intent: {intent_config}")
+        print(f"  LLM Intent: {llm_intent_config}")
         print(f"  Actions: {actions_config}")
         
         return True
@@ -114,30 +111,22 @@ def test_module_functionality():
                 print(f"TTS module failed: {result}")
                 return False
         
-        # Test STT
-        if "stt" in modules:
-            stt = modules["stt"]
-            result = stt.transcribe(b"mock audio data")
-            if result.get("success"):
-                print("STT module working")
-            else:
-                print(f"STT module failed: {result}")
-                return False
+        # Skip STT test as it's not available
         
-        # Test Intent
-        if "intent" in modules:
-            intent = modules["intent"]
+        # Test LLM Intent
+        if "llm_intent" in modules:
+            intent = modules["llm_intent"]
             result = intent.recognize_intent("Hello, how are you?")
             if result.get("success"):
-                print("Intent module working")
+                print("LLM Intent module working")
             else:
-                print(f"Intent module failed: {result}")
+                print(f"LLM Intent module failed: {result}")
                 return False
         
         # Test Actions
         if "actions" in modules:
             actions = modules["actions"]
-            result = actions.execute_action("light_control", {"device": "living_room", "action": "toggle"})
+            result = actions.execute_action("greet", {})
             if result.get("success"):
                 print("Actions module working")
             else:
