@@ -32,23 +32,33 @@ class RequestProcessor():
 
     
     def process_intent(self):
-        # Use LLM as primary intent recognizer
-        logger.info(f"{self.log_tag} Using LLM for intent recognition")
-        
-        intent_result = self.llm_module.recognize_intent(self.text, **self.context)
-        
-        # Update with LLM results
+        # Rasa intent recognition -LOCAL
+        intent_result = self.intent_module.recognize_intent(self.text, **self.context)
+
         self.intent = intent_result.get("intent", "")
         self.confidence = intent_result.get("confidence", 0)
         self.entities = intent_result.get("entities", {})
-        
-        # Handle direct response from LLM
-        if self.intent == "direct_response":
-            self.speech_text = intent_result.get("speech_response", "I'm sorry, I couldn't process that request.")
-            self.actionable_command = False
-            logger.info(f"{self.log_tag} LLM Direct Response: {self.speech_text}")
-        else:
-            logger.info(f"{self.log_tag} LLM Intent[{self.intent}] confidence[{self.confidence}] entities[{self.entities}]")
+
+        logger.info(f"{self.log_tag} LOCAL : Intent[{self.intent}] confidence[{self.confidence}] entities[{self.entities}]")
+
+        # If Rasa returns out_of_scope or low confidence, use LLM fallback
+        if self.intent == OUT_OF_SCOPE or self.confidence <= INTENT_CONFIDENCE_THRESHOLD: 
+            logger.info(f"{self.log_tag} LLM intent fallback")
+            
+            intent_result = self.llm_module.recognize_intent(self.text, **self.context)
+            
+            # Update with LLM results
+            self.intent = intent_result.get("intent", "")
+            self.confidence = intent_result.get("confidence", 0)
+            self.entities = intent_result.get("entities", {})
+            
+            # Handle direct response from LLM
+            if self.intent == "direct_response":
+                self.speech_text = intent_result.get("speech_response", "I'm sorry, I couldn't process that request.")
+                self.actionable_command = False
+                logger.info(f"{self.log_tag} LLM Direct Response: {self.speech_text}")
+            else:
+                logger.info(f"{self.log_tag} LLM Intent[{self.intent}] confidence[{self.confidence}] entities[{self.entities}]")
         
         self.save_to_db()
 

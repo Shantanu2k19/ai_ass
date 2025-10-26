@@ -42,19 +42,14 @@ class RasaIntent(BaseIntent):
         try:
             self.logger.info(f"Rasa Intent analyzing: '{text}'")
             
-            # Use asyncio to run the async parse_message method
-            import asyncio
-            
-            # Check if there's already an event loop running
+            import asyncio            
             try:
                 loop = asyncio.get_running_loop()
-                # If we're in an async context, we need to use a different approach
                 import concurrent.futures
                 with concurrent.futures.ThreadPoolExecutor() as executor:
                     future = executor.submit(asyncio.run, self.agent.parse_message(text))
                     result = future.result()
             except RuntimeError:
-                # No event loop running, we can use asyncio.run directly
                 result = asyncio.run(self.agent.parse_message(text))
             
             intent = result.get("intent", {}).get("name", "unknown")

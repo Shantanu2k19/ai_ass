@@ -28,10 +28,10 @@ def test_mqtt_integration():
         # Get the actions module
         actions = modules.get('actions')
         if not actions:
-            print("❌ Actions module not found!")
+            print(" Actions module not found!")
             return
         
-        print("✅ Actions module loaded successfully!")
+        print(" Actions module loaded successfully!")
         print()
         
         # Test MQTT status
@@ -89,10 +89,10 @@ def test_mqtt_integration():
         print(f"   MQTT Result: {mqtt_result}")
         print()
         
-        print("✅ All tests completed!")
+        print(" All tests completed!")
         
     except Exception as e:
-        print(f"❌ Error during testing: {str(e)}")
+        print(f" Error during testing: {str(e)}")
         logger.exception("Test failed")
 
 if __name__ == "__main__":

@@ -143,6 +143,8 @@ async def process_intent(request: ProcessIntentRequest):
             "mssg": str(e)[:900]
         }
 
+
+
 # test APIs
 
 class TTSRequest(BaseModel):
@@ -204,11 +206,12 @@ async def test_tts(request: TTSRequest):
 @app.post("/test/intent")
 async def test_intent(request: IntentTestRequest):
     """
-    Test intent recognition module by analyzing text for intent.
+    Test intent recognition with same logic as main processor.
     """
     try:
         intent_module = modules.get('local_intent', None)
         llm_intent_module = modules.get('llm_intent', None)
+        action_module = modules.get('actions', None)
         
         if not intent_module and not llm_intent_module:
             return {
@@ -218,29 +221,103 @@ async def test_intent(request: IntentTestRequest):
         
         logger.info(f"Testing intent recognition with text: '{request.text}'")
         
-        results = {}
+        # Simulate the same logic as processor
+        intent = ""
+        confidence = 0
+        entities = {}
+        speech_text = None
+        action_result = None
+        actionable_command = False
         
-        # Test local intent module if available
+        # Step 1: Try Rasa intent recognition first
         if intent_module:
             try:
-                local_result = intent_module.recognize_intent(request.text)
-                results['local_intent'] = local_result
+                intent_result = intent_module.recognize_intent(request.text, **request.context)
+                intent = intent_result.get("intent", "")
+                confidence = intent_result.get("confidence", 0)
+                entities = intent_result.get("entities", {})
+                
+                logger.info(f"LOCAL: Intent[{intent}] confidence[{confidence}] entities[{entities}]")
+                
             except Exception as e:
-                results['local_intent'] = {"error": str(e)}
+                logger.error(f"Rasa intent error: {str(e)}")
+                intent = "out_of_scope"
+                confidence = 0
         
-        # Test LLM intent module if available
-        if llm_intent_module:
+        # Step 2: If Rasa returns out_of_scope or low confidence, use LLM fallback
+        if intent == "out_of_scope" or confidence <= 0.5:  # Using same threshold as processor
+            logger.info("LLM intent fallback")
+            
+            if llm_intent_module:
+                try:
+                    intent_result = llm_intent_module.recognize_intent(request.text, **request.context)
+                    
+                    # Update with LLM results
+                    intent = intent_result.get("intent", "")
+                    confidence = intent_result.get("confidence", 0)
+                    entities = intent_result.get("entities", {})
+                    
+                    # Handle direct response from LLM
+                    if intent == "direct_response":
+                        speech_text = intent_result.get("speech_response", "I'm sorry, I couldn't process that request.")
+                        actionable_command = False
+                        logger.info(f"LLM Direct Response: {speech_text}")
+                    else:
+                        logger.info(f"LLM Intent[{intent}] confidence[{confidence}] entities[{entities}]")
+                        
+                except Exception as e:
+                    logger.error(f"LLM intent error: {str(e)}")
+                    intent = "direct_response"
+                    speech_text = "I'm sorry, I encountered an error processing your request."
+                    actionable_command = False
+        
+        # Step 3: Determine if actionable command
+        actionable_intents = [
+            "greet", "turn_on_device", "turn_off_device", 
+            "ask_time", "ask_day", "ask_date", "out_of_scope"
+        ]
+        
+        if intent == "direct_response":
+            actionable_command = False
+        else:
+            actionable_command = intent in actionable_intents
+        
+        # Step 4: Execute action if needed
+        if actionable_command and action_module and intent != "direct_response":
             try:
-                llm_result = llm_intent_module.recognize_intent(request.text)
-                results['llm_intent'] = llm_result
+                logger.info(f"Executing action for intent: {intent}")
+                action_result = action_module.execute_action(intent, entities, **request.context)
+                logger.info(f"Action result: {action_result}")
+                
+                # Check if action provides speech output
+                if action_result.get('speech_op'):
+                    speech_text = action_result.get('speech_op')
+                    logger.info(f"Action provided speech: {speech_text}")
+                    
             except Exception as e:
-                results['llm_intent'] = {"error": str(e)}
+                logger.error(f"Action execution error: {str(e)}")
+                speech_text = "Something went wrong. Try again later."
+                action_result = {"success": False, "error": str(e)}
+        
+        # Step 5: Generate speech response if none provided
+        if not speech_text:
+            speech_text = "Something went wrong. Try again later."
         
         return {
             "success": True,
             "text": request.text,
             "context": request.context,
-            "results": results
+            "intent": intent,
+            "confidence": confidence,
+            "entities": entities,
+            "speech_text": speech_text,
+            "actionable_command": actionable_command,
+            "action_result": action_result,
+            "flow": {
+                "rasa_used": intent_module is not None,
+                "llm_fallback_used": intent == "direct_response" or (intent == "out_of_scope" and confidence < 0.5),
+                "action_executed": action_result is not None
+            }
         }
         
     except Exception as e:

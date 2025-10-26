@@ -40,21 +40,21 @@ def test_rasa_integration():
             
             if response.status_code == 200:
                 result = response.json()
-                print(f"   ✅ Status: {response.status_code}")
-                print(f"   ✅ Intent: {result.get('intent', 'N/A')}")
-                print(f"   ✅ Confidence: {result.get('confidence', 0):.3f}")
-                print(f"   ✅ Entities: {result.get('entities', {})}")
-                print(f"   ✅ Success: {result.get('success', False)}")
+                print(f"    Status: {response.status_code}")
+                print(f"    Intent: {result.get('intent', 'N/A')}")
+                print(f"    Confidence: {result.get('confidence', 0):.3f}")
+                print(f"    Entities: {result.get('entities', {})}")
+                print(f"    Success: {result.get('success', False)}")
             else:
-                print(f"   ❌ Error: HTTP {response.status_code}")
-                print(f"   ❌ Response: {response.text}")
+                print(f"    Error: HTTP {response.status_code}")
+                print(f"    Response: {response.text}")
                 
         except requests.exceptions.ConnectionError:
-            print("   ❌ Error: Cannot connect to voice assistant server")
-            print("   💡 Make sure the server is running on localhost:8000")
+            print("    Error: Cannot connect to voice assistant server")
+            print("    Make sure the server is running on localhost:8000")
             break
         except Exception as e:
-            print(f"   ❌ Error: {e}")
+            print(f"    Error: {e}")
     
     print("\n" + "=" * 60)
     print("TEST COMPLETED")

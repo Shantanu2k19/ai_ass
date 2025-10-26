@@ -104,23 +104,23 @@ class LLMIntent(BaseIntent):
         
         prompt = f"""You are a voice assistant that can either control devices or answer questions directly.
 
-AVAILABLE DEVICE ACTIONS:
-{actions_list}
+        AVAILABLE DEVICE ACTIONS:
+        {actions_list}
 
-TASK: For "{text}" - either match a device action OR provide a direct spoken response.
+        TASK: For "{text}" - either match a device action OR provide a direct spoken response.
 
-RULES:
-1. If it's a device control request (lights, fans, time, etc.) → use matching intent
-2. If it's a general question/information request → provide direct answer
-3. If request cannot be completed → give helpful response
-4. Always be conversational and helpful
+        RULES:
+        1. If it's a device control request (lights, fans, time, etc.) → use matching intent
+        2. If it's a general question/information request → provide direct answer
+        3. If request cannot be completed → give helpful response
+        4. Always be conversational and helpful
 
-RESPONSE FORMAT (JSON only):
-For device control: {{"intent": "action_name", "confidence": 0.95, "entities": {{"device": "lights"}}, "reasoning": "brief reason"}}
-For general questions: {{"intent": "direct_response", "confidence": 1.0, "entities": {{}}, "reasoning": "general question", "speech_response": "Your spoken answer here"}}
+        RESPONSE FORMAT (JSON only):
+        For device control: {{"intent": "action_name", "confidence": 0.95, "entities": {{"device": "lights"}}, "reasoning": "brief reason"}}
+        For general questions: {{"intent": "direct_response", "confidence": 1.0, "entities": {{}}, "reasoning": "general question", "speech_response": "Your spoken answer here"}}
 
-User: "{text}"
-AI Assistant Response:"""
+        User: "{text}"
+        AI Assistant Response:"""
         return prompt
 
     def _call_chatgpt_api(self, prompt: str) -> Dict[str, Any]:
@@ -210,7 +210,7 @@ AI Assistant Response:"""
             
 
             result = response.json()
-            self.logger.info(f"resp:{result}")
+            # self.logger.info(f"resp:{result}")
             
             # Check if response has content
             candidate = result["candidates"][0]
@@ -268,7 +268,6 @@ AI Assistant Response:"""
             self.logger.info(f"LLM analyzing: '{text}'")
             prompt = self._create_prompt(text)
             
-            # Use the configured provider
             self.logger.info(f"Attempting intent recognition with {self.provider}...")
             result = self._call_llm_provider(self.provider, prompt)
             return self._process_result(result, text, self.provider)

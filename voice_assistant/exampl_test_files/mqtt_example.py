@@ -29,12 +29,12 @@ def main():
     mqtt_handler = get_mqtt_handler(mqtt_config)
     
     if not mqtt_handler.is_initialized:
-        print("❌ MQTT handler initialization failed!")
+        print("MQTT handler initialization failed!")
         print("This is expected if MQTT broker is not available.")
         print("The application will continue without MQTT functionality.")
         return
     
-    print("✅ MQTT handler initialized successfully!")
+    print("MQTT handler initialized successfully!")
     print()
     
     # Get MQTT status
