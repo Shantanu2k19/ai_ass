@@ -140,29 +140,28 @@ class RequestProcessor():
         if not self.speech_text:
             self.speech_text = "Something went wrong. Try again later."
         
-        # Generate TTS audio
+        total_time = time.time() - self.start_time
+        self.save_to_db(total_time)
+        
+        # Generate TTS audio (this takes time but we already saved the log)
         if self.tts_module:
             try:
                 tts_result = self.tts_module.speak(self.speech_text)
                 if not tts_result.get("success", False):
-                    self.had_error = True
-                    self.error_message = f"TTS error: {tts_result.get('error', 'Unknown')}"
+                    logger.warning(f"{self.log_tag} TTS playback error")
             except Exception as e:
                 logger.error(f"{self.log_tag} TTS error: {e}")
-                self.had_error = True
-                self.error_message = f"TTS error: {str(e)}"
         
-        # Save to database
-        self.save_to_db()
         return { "success": True }
 
-    def save_to_db(self):
+    def save_to_db(self, total_time=None):
         """Save request data to database."""
         if not self.db_handler:
             return
         
         try:
-            total_time = time.time() - self.start_time
+            if total_time is None:
+                total_time = time.time() - self.start_time
             
             self.db_handler.log_request({
                 'request_time': self.request_time,
