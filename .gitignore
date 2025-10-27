@@ -24,3 +24,4 @@ venv_39/
 voice_assistant/app/modules/intent/rasa_models/
 voice_assistant/config.yaml
 test_env/
+voice_assistant/voice_assistant_logs.db

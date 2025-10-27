@@ -92,6 +92,7 @@ ai_ass/                          # Root project directory
    - **Action Modules**: Smart light control (extensible for more IoT devices)
 6. **Configuration Management**: YAML-based configuration system
 7. **IoT Integration**: NodeMCU/ESP8266 firmware for hardware control
+8. **DB Tracking**: Every API call to `/process_intent` is automatically saved to a SQLite database with basic info.
 
 ### Module System
 
