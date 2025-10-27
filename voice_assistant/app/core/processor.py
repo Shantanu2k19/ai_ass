@@ -1,4 +1,6 @@
 import uuid
+import time
+from datetime import datetime
 from app.modules.intent.intents import OUT_OF_SCOPE, ALL_INTENTS
 from app.constants import INTENT_CONFIDENCE_THRESHOLD
 import logging as log 
@@ -7,7 +9,7 @@ logger = log.getLogger(__name__)
 
 class RequestProcessor():
 
-    def __init__(self, text, intent_module, llm_intent, action_module, tts_module) -> None:
+    def __init__(self, text, intent_module, llm_intent, action_module, tts_module, db_handler=None) -> None:
         # input 
         self.text = text 
         self.context = {} 
@@ -17,6 +19,7 @@ class RequestProcessor():
         self.llm_module = llm_intent
         self.action_module = action_module
         self.tts_module = tts_module
+        self.db_handler = db_handler
 
         # output data
         self.intent = None
@@ -29,38 +32,53 @@ class RequestProcessor():
 
         # logger 
         self.log_tag = f"[{str(uuid.uuid4())[:4]}]"
+        
+        # Database logging data
+        self.request_time = datetime.now().isoformat()
+        self.start_time = time.time()
+        self.intent_source = None  # 'rasa' or 'llm'
+        self.action_executed = False
+        self.action_success = False
+        self.had_error = False
+        self.error_message = None
 
     
     def process_intent(self):
-        # Rasa intent recognition -LOCAL
-        intent_result = self.intent_module.recognize_intent(self.text, **self.context)
-
-        self.intent = intent_result.get("intent", "")
-        self.confidence = intent_result.get("confidence", 0)
-        self.entities = intent_result.get("entities", {})
-
-        logger.info(f"{self.log_tag} LOCAL : Intent[{self.intent}] confidence[{self.confidence}] entities[{self.entities}]")
-
-        # If Rasa returns out_of_scope or low confidence, use LLM fallback
-        if self.intent == OUT_OF_SCOPE or self.confidence <= INTENT_CONFIDENCE_THRESHOLD: 
-            logger.info(f"{self.log_tag} LLM intent fallback")
+        """Recognize intent using Rasa or LLM fallback."""
+        try:
+            # Rasa intent recognition
+            intent_result = self.intent_module.recognize_intent(self.text, **self.context)
             
-            intent_result = self.llm_module.recognize_intent(self.text, **self.context)
-            
-            # Update with LLM results
             self.intent = intent_result.get("intent", "")
             self.confidence = intent_result.get("confidence", 0)
             self.entities = intent_result.get("entities", {})
+            self.intent_source = 'rasa'
             
-            # Handle direct response from LLM
-            if self.intent == "direct_response":
-                self.speech_text = intent_result.get("speech_response", "I'm sorry, I couldn't process that request.")
-                self.actionable_command = False
-                logger.info(f"{self.log_tag} LLM Direct Response: {self.speech_text}")
-            else:
-                logger.info(f"{self.log_tag} LLM Intent[{self.intent}] confidence[{self.confidence}] entities[{self.entities}]")
-        
-        self.save_to_db()
+            logger.info(f"{self.log_tag} RASA: Intent[{self.intent}] confidence[{self.confidence}]")
+
+            # If Rasa returns out_of_scope or low confidence, use LLM fallback
+            if self.intent == OUT_OF_SCOPE or self.confidence <= INTENT_CONFIDENCE_THRESHOLD: 
+                logger.info(f"{self.log_tag} LLM intent fallback")
+                
+                intent_result = self.llm_module.recognize_intent(self.text, **self.context)
+                self.intent = intent_result.get("intent", "")
+                self.confidence = intent_result.get("confidence", 0)
+                self.entities = intent_result.get("entities", {})
+                self.intent_source = 'llm'
+                
+                # Handle direct response from LLM
+                if self.intent == "direct_response":
+                    self.speech_text = intent_result.get("speech_response", "I'm sorry, I couldn't process that request.")
+                    self.actionable_command = False
+                    logger.info(f"{self.log_tag} LLM Direct Response: {self.speech_text}")
+                else:
+                    logger.info(f"{self.log_tag} LLM: Intent[{self.intent}]")
+        except Exception as e:
+            logger.error(f"{self.log_tag} Intent error: {e}")
+            self.had_error = True
+            self.error_message = str(e)
+            self.intent = "error"
+            self.intent_source = 'error'
 
         return 
 
@@ -85,64 +103,81 @@ class RequestProcessor():
         """Execute action based on detected intent."""
         # Skip action execution for direct responses
         if self.intent == "direct_response":
-            logger.info(f"{self.log_tag} Direct response - skipping action execution")
-            # Preserve the speech_text from LLM response
-            logger.info(f"{self.log_tag} Preserving speech text: {self.speech_text}")
+            logger.info(f"{self.log_tag} Direct response - skipping action")
             return
             
         if self.intent not in ALL_INTENTS:
             logger.info(f"{self.log_tag} No action required for intent: {self.intent}")
             return
 
-        logger.info(f"{self.log_tag} Executing action for intent: {self.intent}")
+        logger.info(f"{self.log_tag} Executing action: {self.intent}")
         
         try:
+            self.action_executed = True
             action_result = self.action_module.execute_action(self.intent, self.entities, **self.context)
+            self.action_success = action_result.get('success', False)
             
-            logger.info(f"{self.log_tag} Action result: {action_result}")
-            
-            # Store action result for potential use in speech response
-            self.action_result = action_result.get('success', False)
-            
-            # Only update speech_text if action provides one
+            # Update speech text if action provides one
             if action_result.get('speech_op'):
                 self.speech_text = action_result.get('speech_op')
-                logger.info(f"{self.log_tag} Action provided speech: {self.speech_text}")
-            
-            if self.action_result == False:
-                self.speech_text = "Something went wrong. Try again later."
-                self.save_to_db()
-            else:
-                logger.warning(f"{self.log_tag} Action execution failed: {action_result.get('error', 'Unknown error')}")
+                logger.info(f"{self.log_tag} Action speech: {self.speech_text}")
                 
         except Exception as e:
-            logger.error(f"{self.log_tag} Action execution error: {str(e)}")
+            logger.error(f"{self.log_tag} Action error: {e}")
+            self.action_executed = True
+            self.action_success = False
             self.speech_text = "Something went wrong. Try again later."
-            self.action_result = False
+            self.had_error = True
+            self.error_message = f"Action error: {str(e)}"
         
         return
 
-    def process_speechresponse(self):
-        """Generate speech response based on action result or provided text."""
+    def process_speechresponse(self, fallback_text=None):
+        """Generate speech response and save to database."""
+        if fallback_text:
+            self.speech_text = fallback_text
+                
         if not self.speech_text:
             self.speech_text = "Something went wrong. Try again later."
         
-        # Generate TTS audio if TTS module is available
+        # Generate TTS audio
         if self.tts_module:
             try:
                 tts_result = self.tts_module.speak(self.speech_text)
-                if tts_result.get("success", False):
-                    logger.info(f"{self.log_tag} TTS audio generated successfully")
-                    return { "success": True }
-                else:
-                    logger.warning(f"{self.log_tag} TTS generation failed: {tts_result.get('error')}")
+                if not tts_result.get("success", False):
+                    self.had_error = True
+                    self.error_message = f"TTS error: {tts_result.get('error', 'Unknown')}"
             except Exception as e:
-                logger.error(f"{self.log_tag} TTS error: {str(e)}")
+                logger.error(f"{self.log_tag} TTS error: {e}")
+                self.had_error = True
+                self.error_message = f"TTS error: {str(e)}"
         
+        # Save to database
+        self.save_to_db()
         return { "success": True }
 
     def save_to_db(self):
-        # TODO
-        pass
+        """Save request data to database."""
+        if not self.db_handler:
+            return
+        
+        try:
+            total_time = time.time() - self.start_time
+            
+            self.db_handler.log_request({
+                'request_time': self.request_time,
+                'text': self.text,
+                'intent': self.intent,
+                'intent_source': self.intent_source,
+                'action_executed': self.action_executed,
+                'action_success': self.action_success,
+                'tts_text': self.speech_text,
+                'total_time': total_time,
+                'had_error': self.had_error,
+                'error_message': self.error_message
+            })
+                
+        except Exception as e:
+            logger.error(f"{self.log_tag} Error saving to database: {e}")
 
     

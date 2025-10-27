@@ -16,6 +16,7 @@ load_dotenv()
 from app.core.module_loader import initialize_modules, ModuleLoader
 from app.core.config import Config
 from app.core.processor import RequestProcessor
+from app.modules.db.database import DatabaseHandler
 # Load configuration
 config = Config()
 
@@ -34,16 +35,21 @@ logger = logging.getLogger(__name__)
 modules: Dict[str, Any] = {}
 config: Optional[Config] = None
 module_loader: Optional[ModuleLoader] = None
+db_handler: Optional[DatabaseHandler] = None
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Handle application lifespan events."""
-    global modules, config, module_loader
+    global modules, config, module_loader, db_handler
     
     # Startup
     try:
         logger.info("Starting ===============")
+        
+        # Initialize database
+        db_handler = DatabaseHandler()
+        logger.info("Database handler initialized")
         
         # Load config and Init modules 
         config = Config("config.yaml")
@@ -65,8 +71,10 @@ async def lifespan(app: FastAPI):
     
     yield
     
-    # Shutdown (if needed)
+    # Shutdown
     logger.info("Shutting down Voice Assistant Platform...")
+    if db_handler:
+        db_handler.close()
 
 
 # Initialize FastAPI app
@@ -104,6 +112,8 @@ async def process_intent(request: ProcessIntentRequest):
     """
     Process text through intent recognition and action execution.
     """
+    global db_handler
+    
     try:
         text = request.text
         context = request.context or {}
@@ -119,7 +129,7 @@ async def process_intent(request: ProcessIntentRequest):
             return {"error": f"Missing required modules: intent[{intent_module}] action[{action_module}] tts[{tts_module}]", "success": False}
 
         #request processing pipeling 
-        request_processor = RequestProcessor(text, intent_module, llm_intent, action_module, tts_module)
+        request_processor = RequestProcessor(text, intent_module, llm_intent, action_module, tts_module, db_handler)
 
         try:
             # intent 
@@ -326,6 +336,23 @@ async def test_intent(request: IntentTestRequest):
             "success": False,
             "error": str(e)
         }
+
+# Database API endpoints
+
+@app.get("/logs")
+async def get_logs(limit: int = 50):
+    """Get recent request logs."""
+    global db_handler
+    
+    if not db_handler:
+        return {"error": "Database not initialized", "success": False}
+    
+    try:
+        logs = db_handler.get_recent_logs(limit)
+        return {"success": True, "logs": logs, "count": len(logs)}
+    except Exception as e:
+        logger.error(f"Error getting logs: {e}")
+        return {"success": False, "error": str(e)}
 
 if __name__ == "__main__":
     uvicorn.run(
